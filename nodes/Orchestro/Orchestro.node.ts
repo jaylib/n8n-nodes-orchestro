@@ -78,19 +78,38 @@ export class Orchestro implements INodeType {
 				type: 'options',
 				options: [
 					{
-						name: 'No Payload',
-						value: 'none',
+						name: 'JSON',
+						value: 'json',
+					},
+					{
+						name: 'List of Elements',
+						value: 'list',
 					},
 					{
 						name: 'Markdown',
 						value: 'markdown',
 					},
 					{
-						name: 'List of Elements',
-						value: 'list',
+						name: 'No Payload',
+						value: 'none',
 					},
 				],
 				default: 'none',
+			},
+			{
+				displayName: 'Payload JSON',
+				name: 'payloadJson',
+				type: 'string',
+				typeOptions: {
+					rows: 10,
+				},
+				default: '',
+				placeholder: 'Enter JSON content',
+				displayOptions: {
+					show: {
+						payloadType: ['json'],
+					},
+				},
 			},
 			{
 				displayName: 'Payload Markdown',
@@ -147,6 +166,10 @@ export class Orchestro implements INodeType {
 										value: 'headline',
 									},
 									{
+										name: 'Image',
+										value: 'image',
+									},
+									{
 										name: 'Link',
 										value: 'url',
 									},
@@ -164,6 +187,59 @@ export class Orchestro implements INodeType {
 									},
 								],
 								default: 'text',
+							},
+							{
+								displayName: 'Image Source Type',
+								name: 'imageSourceType',
+								type: 'options',
+								required: true,
+								default: 'url',
+								options: [
+									{
+										name: 'Base64',
+										value: 'base64',
+									},
+									{
+										name: 'URL',
+										value: 'url',
+									},
+								],
+								displayOptions: {
+									show: {
+										type: ['image'],
+									},
+								},
+							},
+							{
+								displayName: 'Base64',
+								name: 'base64',
+								type: 'string',
+								typeOptions: {
+									rows: 5,
+								},
+								required: true,
+								default: '',
+								placeholder: 'Enter base64 encoded image',
+								displayOptions: {
+									show: {
+										type: ['image'],
+										imageSourceType: ['base64'],
+									},
+								},
+							},
+							{
+								displayName: 'Image URL',
+								name: 'imageUrl',
+								type: 'string',
+								required: true,
+								default: '',
+								placeholder: 'Enter image URL',
+								displayOptions: {
+									show: {
+										type: ['image'],
+										imageSourceType: ['url'],
+									},
+								},
 							},
 							{
 								displayName: 'Name',
@@ -294,6 +370,7 @@ export class Orchestro implements INodeType {
 									field: [
 										{
 											key: '',
+											valueType: 'text',
 											value: '',
 										},
 									],
@@ -322,11 +399,60 @@ export class Orchestro implements INodeType {
 												placeholder: 'Enter field key',
 											},
 											{
+												displayName: 'Value Type',
+												name: 'valueType',
+												type: 'options',
+												required: true,
+												default: 'text',
+												options: [
+													{
+														name: 'Boolean',
+														value: 'boolean',
+													},
+													{
+														name: 'Number',
+														value: 'number',
+													},
+													{
+														name: 'Text',
+														value: 'text',
+													},
+												],
+											},
+											{
 												displayName: 'Value',
 												name: 'value',
 												type: 'string',
 												default: '',
 												placeholder: 'Enter field value',
+												displayOptions: {
+													show: {
+														valueType: ['text'],
+													},
+												},
+											},
+											{
+												displayName: 'Value',
+												name: 'value',
+												type: 'number',
+												default: 0,
+												placeholder: 'Enter field value',
+												displayOptions: {
+													show: {
+														valueType: ['number'],
+													},
+												},
+											},
+											{
+												displayName: 'Value',
+												name: 'value',
+												type: 'boolean',
+												default: false,
+												displayOptions: {
+													show: {
+														valueType: ['boolean'],
+													},
+												},
 											},
 										],
 									},
@@ -459,7 +585,7 @@ export class Orchestro implements INodeType {
 		let body: string;
 		let userId: string;
 		let payloadType: string;
-		let elements: Array<{ type: string; text?: string; title?: string; url?: string; linkText?: string; markdown?: string; httpMethod?: string; bodyType?: string; jsonBody?: string; fields?: { field?: Array<{ key: string; value: string }> }; name?: string; description?: string; primary?: boolean }>;
+		let elements: Array<{ type: string; text?: string; title?: string; url?: string; linkText?: string; markdown?: string; httpMethod?: string; bodyType?: string; jsonBody?: string; fields?: { field?: Array<{ key: string; valueType?: string; value: string | number | boolean }> }; name?: string; description?: string; primary?: boolean; imageSourceType?: string; base64?: string; imageUrl?: string }>;
 
 		// Iterates over all input items and send HTTP request for each item
 		for (let itemIndex = 0; itemIndex < items.length; itemIndex++) {
@@ -470,42 +596,64 @@ export class Orchestro implements INodeType {
 				payloadType = this.getNodeParameter('payloadType', itemIndex, 'none') as string;
 				item = items[itemIndex];
 
-				// Get elements based on payload type
-				if (payloadType === 'list') {
-					const elementsParam = this.getNodeParameter('elements', itemIndex, { element: [] }) as {
-						element?: Array<{ type: string; text?: string; title?: string; url?: string; linkText?: string; markdown?: string; httpMethod?: string; bodyType?: string; jsonBody?: string; fields?: { field?: Array<{ key: string; value: string }> }; name?: string; description?: string; primary?: boolean }>;
+				// Prepare request body based on payload type
+				let requestBody: { title: string; body: string; data: Record<string, unknown> };
+				let elementsLog = '';
+				
+				if (payloadType === 'json') {
+					const payloadJson = this.getNodeParameter('payloadJson', itemIndex, '') as string;
+					let jsonData: Record<string, unknown>;
+					try {
+						jsonData = JSON.parse(payloadJson);
+					} catch {
+						throw new NodeOperationError(this.getNode(), 'Invalid JSON in Payload JSON field', {
+							itemIndex,
+						});
+					}
+					requestBody = {
+						title,
+						body,
+						data: jsonData,
 					};
-					// fixedCollection stores data under the option name (element)
-					elements = elementsParam?.element || [];
-				} else if (payloadType === 'markdown') {
-					const payloadMarkdown = this.getNodeParameter('payloadMarkdown', itemIndex, '') as string;
-					// Create a single markdown element
-					elements = [
-						{
-							type: 'markdown',
-							markdown: payloadMarkdown,
-						},
-					];
+					elementsLog = JSON.stringify(jsonData, null, 2);
+					elements = []; // Initialize elements for JSON payload type
 				} else {
-					elements = [];
+					// Get elements based on payload type
+					if (payloadType === 'list') {
+						const elementsParam = this.getNodeParameter('elements', itemIndex, { element: [] }) as {
+							element?: Array<{ type: string; text?: string; title?: string; url?: string; linkText?: string; markdown?: string; httpMethod?: string; bodyType?: string; jsonBody?: string; fields?: { field?: Array<{ key: string; valueType?: string; value: string | number | boolean }> }; name?: string; description?: string; primary?: boolean; imageSourceType?: string; base64?: string; imageUrl?: string }>;
+						};
+						// fixedCollection stores data under the option name (element)
+						elements = elementsParam?.element || [];
+					} else if (payloadType === 'markdown') {
+						const payloadMarkdown = this.getNodeParameter('payloadMarkdown', itemIndex, '') as string;
+						// Create a single markdown element
+						elements = [
+							{
+								type: 'markdown',
+								markdown: payloadMarkdown,
+							},
+						];
+					} else {
+						elements = [];
+					}
+
+					// Add UUID to each element (not exposed in UI)
+					elements = elements.map((element) => ({
+						...element,
+						id: generateUUID(),
+					}));
+
+					// Log elements (included in output for debugging)
+					elementsLog = JSON.stringify(elements, null, 2);
+					// Note: Elements are logged in the output JSON below
+
+					requestBody = {
+						title,
+						body,
+						data: { elements: elements },
+					};
 				}
-
-				// Add UUID to each element (not exposed in UI)
-				elements = elements.map((element) => ({
-					...element,
-					id: generateUUID(),
-				}));
-
-				// Log elements (included in output for debugging)
-				const elementsLog = JSON.stringify(elements, null, 2);
-				// Note: Elements are logged in the output JSON below
-
-				// Prepare request body
-				const requestBody = {
-					title,
-					body,
-					data: { elements: elements },
-				};
 
 				// Send HTTP request
 				const response = await this.helpers.httpRequest({
@@ -520,7 +668,7 @@ export class Orchestro implements INodeType {
 					...item.json,
 					title,
 					body,
-					payload: payloadType === 'list' ? { type: 'list', elements } : null,
+					payload: payloadType === 'list' ? { type: 'list', elements } : payloadType === 'json' ? { type: 'json', data: requestBody.data } : null,
 					_elementsLog: elementsLog, // Log elements for debugging
 					response,
 				};
