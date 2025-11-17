@@ -613,7 +613,7 @@ export class Orchestro implements INodeType {
 					requestBody = {
 						title,
 						body,
-						data: jsonData,
+						data: { ...jsonData, executionId },
 					};
 					elementsLog = JSON.stringify(jsonData, null, 2);
 					elements = []; // Initialize elements for JSON payload type
@@ -671,9 +671,9 @@ export class Orchestro implements INodeType {
 					...item.json,
 					title,
 					body,
+					executionId,
 					payload: payloadType === 'list' ? { type: 'list', elements } : payloadType === 'json' ? { type: 'json', data: requestBody.data } : null,
-					_elementsLog: elementsLog, // Log elements for debugging
-					response,
+					response
 				};
 			} catch (error) {
 				// Handle errors
