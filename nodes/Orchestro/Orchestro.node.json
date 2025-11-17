@@ -1,7 +1,7 @@
 {
 	"node": "n8n-nodes-orchestro",
-	"nodeVersion": "1.0",
-	"codexVersion": "1.0",
+	"nodeVersion": "0.0.1",
+	"codexVersion": "0.0.1",
 	"categories": ["Development", "Developer Tools"],
 	"resources": {
 		"credentialDocumentation": [
