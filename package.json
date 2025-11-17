@@ -1,6 +1,6 @@
 {
 	"name": "n8n-nodes-orchestro",
-	"version": "0.0.3",
+	"version": "0.0.4",
 	"description": "Orchestro node for n8n",
 	"license": "MIT",
 	"homepage": "",
