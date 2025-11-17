@@ -579,7 +579,7 @@ export class Orchestro implements INodeType {
 	// You can make async calls and use `await`.
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
 		const items = this.getInputData();
-
+		const executionId = this.getExecutionId();
 		let item: INodeExecutionData;
 		let title: string;
 		let body: string;
@@ -651,7 +651,10 @@ export class Orchestro implements INodeType {
 					requestBody = {
 						title,
 						body,
-						data: { elements: elements },
+						data: { 
+							executionId,
+							elements: elements 
+						},
 					};
 				}
 
