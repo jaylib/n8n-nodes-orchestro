@@ -1,6 +1,8 @@
 import type {
 	IExecuteFunctions,
+	ILoadOptionsFunctions,
 	INodeExecutionData,
+	INodePropertyOptions,
 	INodeType,
 	INodeTypeDescription,
 } from 'n8n-workflow';
@@ -13,6 +15,18 @@ function generateUUID(): string {
 		const v = c === 'x' ? r : (r & 0x3) | 0x8;
 		return v.toString(16);
 	});
+}
+
+// Type for workflow node structure
+interface WorkflowNodeData {
+	id: string;
+	name?: string;
+	type: string;
+}
+
+// Extended workflow interface to access nodes
+interface WorkflowWithNodes {
+	nodes?: Record<string, WorkflowNodeData>;
 }
 
 export class Orchestro implements INodeType {
@@ -121,6 +135,7 @@ export class Orchestro implements INodeType {
 						typeOptions: {
 							multipleValueButtonText: 'Add Element',
 						},
+						/* eslint-disable -- Custom field order for webhook fields */
 						values: [
 							{
 								displayName: 'Element Type',
@@ -128,23 +143,212 @@ export class Orchestro implements INodeType {
 								type: 'options',
 								options: [
 									{
-										name: 'Text',
-										value: 'text',
-									},
-									{
 										name: 'Headline',
 										value: 'headline',
+									},
+									{
+										name: 'Link',
+										value: 'url',
 									},
 									{
 										name: 'Markdown',
 										value: 'markdown',
 									},
 									{
-										name: 'URL',
-										value: 'url',
+										name: 'Text',
+										value: 'text',
+									},
+									{
+										name: 'Webhook',
+										value: 'webhook',
 									},
 								],
 								default: 'text',
+							},
+							{
+								displayName: 'Name',
+								name: 'name',
+								type: 'string',
+								default: '',
+								placeholder: 'Enter webhook name',
+								displayOptions: {
+									show: {
+										type: ['webhook'],
+									},
+								},
+							},
+							{
+								displayName: 'Description',
+								name: 'description',
+								type: 'string',
+								default: '',
+								placeholder: 'Enter webhook description',
+								displayOptions: {
+									show: {
+										type: ['webhook'],
+									},
+								},
+							},
+							{
+								displayName: 'Primary',
+								name: 'primary',
+								type: 'boolean',
+								default: true,
+								displayOptions: {
+									show: {
+										type: ['webhook'],
+									},
+								},
+							},
+							{
+								displayName: 'URL',
+								name: 'url',
+								type: 'string',
+								required: true,
+								default: '',
+								placeholder: 'Enter webhook URL',
+								displayOptions: {
+									show: {
+										type: ['webhook'],
+									},
+								},
+							},
+							{
+								displayName: 'HTTP Method',
+								name: 'httpMethod',
+								type: 'options',
+								required: true,
+								default: 'GET',
+								options: [
+									{
+										name: 'DELETE',
+										value: 'DELETE',
+									},
+									{
+										name: 'GET',
+										value: 'GET',
+									},
+									{
+										name: 'HEAD',
+										value: 'HEAD',
+									},
+									{
+										name: 'OPTIONS',
+										value: 'OPTIONS',
+									},
+									{
+										name: 'PATCH',
+										value: 'PATCH',
+									},
+									{
+										name: 'POST',
+										value: 'POST',
+									},
+									{
+										name: 'PUT',
+										value: 'PUT',
+									},
+								],
+								displayOptions: {
+									show: {
+										type: ['webhook'],
+									},
+								},
+							},
+							{
+								displayName: 'Body Type',
+								name: 'bodyType',
+								type: 'options',
+								required: true,
+								default: 'jsonBody',
+								options: [
+									{
+										name: 'Custom Fields',
+										value: 'customFields',
+									},
+									{
+										name: 'JSON Body',
+										value: 'jsonBody',
+									},
+									{
+										name: 'None',
+										value: 'none',
+									},
+								],
+								displayOptions: {
+									show: {
+										type: ['webhook'],
+										httpMethod: ['POST', 'PUT', 'PATCH'],
+									},
+								},
+							},
+							{
+								displayName: 'Fields',
+								name: 'fields',
+								type: 'fixedCollection',
+								typeOptions: {
+									multipleValues: true,
+									multipleValueButtonText: 'Add Field',
+								},
+								default: {
+									field: [
+										{
+											key: '',
+											value: '',
+										},
+									],
+								},
+								displayOptions: {
+									show: {
+										type: ['webhook'],
+										httpMethod: ['POST', 'PUT', 'PATCH'],
+										bodyType: ['customFields'],
+									},
+								},
+								options: [
+									{
+										displayName: 'Field',
+										name: 'field',
+										typeOptions: {
+											multipleValueButtonText: 'Add Field',
+										},
+										values: [
+											{
+												displayName: 'Key',
+												name: 'key',
+												type: 'string',
+												required: true,
+												default: '',
+												placeholder: 'Enter field key',
+											},
+											{
+												displayName: 'Value',
+												name: 'value',
+												type: 'string',
+												default: '',
+												placeholder: 'Enter field value',
+											},
+										],
+									},
+								],
+							},
+							{
+								displayName: 'JSON Body',
+								name: 'jsonBody',
+								type: 'string',
+								typeOptions: {
+									rows: 5,
+								},
+								default: '',
+								placeholder: 'Enter JSON body',
+								description: 'The JSON body to send with the request',
+								displayOptions: {
+									show: {
+										type: ['webhook'],
+										httpMethod: ['POST', 'PUT', 'PATCH'],
+										bodyType: ['jsonBody'],
+									},
+								},
 							},
 							{
 								displayName: 'Link Text',
@@ -215,10 +419,33 @@ export class Orchestro implements INodeType {
 								},
 							},
 					],
+					/* eslint-enable */
 					},
 				],
 			},
 		],
+	};
+
+	methods = {
+		loadOptions: {
+			async getWebhooks(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
+				const workflow = this.getWorkflow() as WorkflowWithNodes;
+				const allNodes = workflow.nodes || {};
+				
+				const webhookNodes: INodePropertyOptions[] = [];
+				
+				for (const node of Object.values(allNodes)) {
+					// if (node.type === 'n8n-nodes-base.webhook') {
+						webhookNodes.push({
+							name: node.name || node.id,
+							value: node.id,
+						});
+					// }
+				}
+				
+				return webhookNodes;
+			},
+		},
 	};
 
 	// The function below is responsible for actually doing whatever this node
@@ -232,7 +459,7 @@ export class Orchestro implements INodeType {
 		let body: string;
 		let userId: string;
 		let payloadType: string;
-		let elements: Array<{ type: string; text?: string; title?: string; url?: string; linkText?: string; markdown?: string }>;
+		let elements: Array<{ type: string; text?: string; title?: string; url?: string; linkText?: string; markdown?: string; httpMethod?: string; bodyType?: string; jsonBody?: string; fields?: { field?: Array<{ key: string; value: string }> }; name?: string; description?: string; primary?: boolean }>;
 
 		// Iterates over all input items and send HTTP request for each item
 		for (let itemIndex = 0; itemIndex < items.length; itemIndex++) {
@@ -246,7 +473,7 @@ export class Orchestro implements INodeType {
 				// Get elements based on payload type
 				if (payloadType === 'list') {
 					const elementsParam = this.getNodeParameter('elements', itemIndex, { element: [] }) as {
-						element?: Array<{ type: string; text?: string; title?: string; url?: string; linkText?: string; markdown?: string }>;
+						element?: Array<{ type: string; text?: string; title?: string; url?: string; linkText?: string; markdown?: string; httpMethod?: string; bodyType?: string; jsonBody?: string; fields?: { field?: Array<{ key: string; value: string }> }; name?: string; description?: string; primary?: boolean }>;
 					};
 					// fixedCollection stores data under the option name (element)
 					elements = elementsParam?.element || [];
