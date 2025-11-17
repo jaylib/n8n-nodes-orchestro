@@ -1,5 +1,5 @@
 {
-	"node": "n8n-nodes-example",
+	"node": "n8n-nodes-orchestro",
 	"nodeVersion": "1.0",
 	"codexVersion": "1.0",
 	"categories": ["Development", "Developer Tools"],

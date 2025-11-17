@@ -6,10 +6,10 @@ import type {
 } from 'n8n-workflow';
 import { NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
 
-export class Example implements INodeType {
+export class Orchestro implements INodeType {
 	description: INodeTypeDescription = {
-		displayName: 'Example',
-		name: 'example',
+		displayName: 'Orchestro',
+		name: 'orchestro',
 		icon: { light: 'file:example.svg', dark: 'file:example.dark.svg' },
 		group: ['input'],
 		version: 1,
@@ -76,3 +76,5 @@ export class Example implements INodeType {
 		return [items];
 	}
 }
+
+
