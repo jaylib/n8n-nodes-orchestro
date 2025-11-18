@@ -271,11 +271,11 @@ export class Orchestro implements INodeType {
 								},
 							},
 							{
-								displayName: 'Name',
-								name: 'name',
+								displayName: 'Title',
+								name: 'title',
 								type: 'string',
 								default: '',
-								placeholder: 'Enter webhook name',
+								placeholder: 'Enter a title for the webhook usage',
 								displayOptions: {
 									show: {
 										type: ['webhook'],
@@ -287,7 +287,7 @@ export class Orchestro implements INodeType {
 								name: 'description',
 								type: 'string',
 								default: '',
-								placeholder: 'Enter webhook description',
+								placeholder: 'Enter a description for the webhook usage',
 								displayOptions: {
 									show: {
 										type: ['webhook'],
@@ -299,6 +299,18 @@ export class Orchestro implements INodeType {
 								name: 'primary',
 								type: 'boolean',
 								default: true,
+								displayOptions: {
+									show: {
+										type: ['webhook'],
+									},
+								},
+							},
+							{
+								displayName: 'Execution Button Label',
+								name: 'executionButtonLabel',
+								type: 'string',
+								default: '',
+								placeholder: 'Enter execution button label',
 								displayOptions: {
 									show: {
 										type: ['webhook'],
@@ -614,7 +626,7 @@ export class Orchestro implements INodeType {
 		let body: string;
 		let userId: string;
 		let payloadType: string;
-		let elements: Array<{ type: string; text?: string; title?: string; url?: string; linkText?: string; markdown?: string; httpMethod?: string; bodyType?: string; jsonBody?: string; fields?: { field?: Array<{ key: string; valueType?: string; value: string | number | boolean }> }; name?: string; description?: string; primary?: boolean; imageSourceType?: string; base64?: string; imageUrl?: string }>;
+		let elements: Array<{ type: string; text?: string; title?: string; url?: string; linkText?: string; markdown?: string; httpMethod?: string; bodyType?: string; jsonBody?: string; fields?: { field?: Array<{ key: string; valueType?: string; value: string | number | boolean }> }; name?: string; description?: string; primary?: boolean; executionButtonLabel?: string; imageSourceType?: string; base64?: string; imageUrl?: string }>;
 
 		// Iterates over all input items and send HTTP request for each item
 		for (let itemIndex = 0; itemIndex < items.length; itemIndex++) {
@@ -653,7 +665,7 @@ export class Orchestro implements INodeType {
 					// Get elements based on payload type
 					if (payloadType === 'list') {
 						const elementsParam = this.getNodeParameter('elements', itemIndex, { element: [] }) as {
-							element?: Array<{ type: string; text?: string; title?: string; url?: string; linkText?: string; markdown?: string; httpMethod?: string; bodyType?: string; jsonBody?: string; fields?: { field?: Array<{ key: string; valueType?: string; value: string | number | boolean }> }; name?: string; description?: string; primary?: boolean; imageSourceType?: string; base64?: string; imageUrl?: string }>;
+							element?: Array<{ type: string; text?: string; title?: string; url?: string; linkText?: string; markdown?: string; httpMethod?: string; bodyType?: string; jsonBody?: string; fields?: { field?: Array<{ key: string; valueType?: string; value: string | number | boolean }> }; name?: string; description?: string; primary?: boolean; executionButtonLabel?: string; imageSourceType?: string; base64?: string; imageUrl?: string }>;
 						};
 						// fixedCollection stores data under the option name (element)
 						elements = elementsParam?.element || [];
@@ -670,11 +682,21 @@ export class Orchestro implements INodeType {
 						elements = [];
 					}
 
-					// Add UUID to each element (not exposed in UI)
-					elements = elements.map((element) => ({
-						...element,
-						id: generateUUID(),
-					}));
+					// Add UUID to each element and flatten fields structure
+					elements = elements.map((element) => {
+						const flattenedElement = {
+							...element,
+							id: generateUUID(),
+						} as typeof element & { id: string };
+						
+						// Flatten fields structure: { fields: { field: [] } } -> { fields: [] }
+						if (flattenedElement.fields && typeof flattenedElement.fields === 'object' && 'field' in flattenedElement.fields) {
+							const fieldsObj = flattenedElement.fields as { field?: Array<{ key: string; valueType?: string; value: string | number | boolean }> };
+							(flattenedElement as Record<string, unknown>).fields = fieldsObj.field || [];
+						}
+						
+						return flattenedElement;
+					});
 
 
 					requestBody = {
