@@ -17,6 +17,35 @@ function generateUUID(): string {
 	});
 }
 
+// Recursively add UUID id to array elements that don't have one
+function addIdsToArrayElements(data: unknown): unknown {
+	if (Array.isArray(data)) {
+		return data.map((item) => {
+			if (typeof item === 'object' && item !== null) {
+				const itemWithId = { ...item } as Record<string, unknown>;
+				// Add id if missing
+				if (!itemWithId.id) {
+					itemWithId.id = generateUUID();
+				}
+				// Recursively process nested objects and arrays
+				for (const key in itemWithId) {
+					itemWithId[key] = addIdsToArrayElements(itemWithId[key]);
+				}
+				return itemWithId;
+			}
+			return item;
+		});
+	} else if (typeof data === 'object' && data !== null) {
+		const obj = { ...data } as Record<string, unknown>;
+		// Recursively process all properties
+		for (const key in obj) {
+			obj[key] = addIdsToArrayElements(obj[key]);
+		}
+		return obj;
+	}
+	return data;
+}
+
 // Type for workflow node structure
 interface WorkflowNodeData {
 	id: string;
@@ -601,7 +630,7 @@ export class Orchestro implements INodeType {
 				
 				if (payloadType === 'json') {
 					const payloadJson = this.getNodeParameter('payloadJson', itemIndex, '') as string;
-					let jsonData: Record<string, unknown>;
+					let jsonData: unknown;
 					try {
 						jsonData = JSON.parse(payloadJson);
 					} catch {
@@ -609,10 +638,15 @@ export class Orchestro implements INodeType {
 							itemIndex,
 						});
 					}
+					// Add UUID id to every element in arrays that don't have one
+					const jsonDataWithIds = addIdsToArrayElements(jsonData);
+					const processedData = typeof jsonDataWithIds === 'object' && jsonDataWithIds !== null && !Array.isArray(jsonDataWithIds)
+						? { ...jsonDataWithIds as Record<string, unknown>, executionId }
+						: { data: jsonDataWithIds, executionId };
 					requestBody = {
 						title,
 						body,
-						data: { ...jsonData, executionId },
+						data: processedData,
 					};
 					elements = []; // Initialize elements for JSON payload type
 				} else {
