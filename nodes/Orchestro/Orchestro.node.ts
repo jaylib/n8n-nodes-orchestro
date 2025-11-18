@@ -598,7 +598,6 @@ export class Orchestro implements INodeType {
 
 				// Prepare request body based on payload type
 				let requestBody: { title: string; body: string; data: Record<string, unknown> };
-				let elementsLog = '';
 				
 				if (payloadType === 'json') {
 					const payloadJson = this.getNodeParameter('payloadJson', itemIndex, '') as string;
@@ -615,7 +614,6 @@ export class Orchestro implements INodeType {
 						body,
 						data: { ...jsonData, executionId },
 					};
-					elementsLog = JSON.stringify(jsonData, null, 2);
 					elements = []; // Initialize elements for JSON payload type
 				} else {
 					// Get elements based on payload type
@@ -644,9 +642,6 @@ export class Orchestro implements INodeType {
 						id: generateUUID(),
 					}));
 
-					// Log elements (included in output for debugging)
-					elementsLog = JSON.stringify(elements, null, 2);
-					// Note: Elements are logged in the output JSON below
 
 					requestBody = {
 						title,
@@ -661,7 +656,7 @@ export class Orchestro implements INodeType {
 				// Send HTTP request
 				const response = await this.helpers.httpRequest({
 					method: 'POST',
-					url: `https://sendpushtouser-ucirriqfma-ew.a.run.app/${userId}`,
+					url: `https://orchestro.app/api/push/${userId}`,
 					body: requestBody,
 					json: true,
 				});
