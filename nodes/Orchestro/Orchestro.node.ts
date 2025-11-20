@@ -3,6 +3,7 @@ import type {
 	ILoadOptionsFunctions,
 	INodeExecutionData,
 	INodePropertyOptions,
+	INodeProperties,
 	INodeType,
 	INodeTypeDescription,
 } from 'n8n-workflow';
@@ -58,6 +59,68 @@ interface WorkflowWithNodes {
 	nodes?: Record<string, WorkflowNodeData>;
 }
 
+export const respondWithOptions: INodeProperties = {
+	displayName: 'Form Response',
+	name: 'respondWithOptions',
+	type: 'fixedCollection',
+	placeholder: 'Add option',
+	default: { values: { respondWith: 'text' } },
+	options: [
+		{
+			displayName: 'Values',
+			name: 'values',
+			values: [
+				{
+					displayName: 'Respond With',
+					name: 'respondWith',
+					type: 'options',
+					default: 'text',
+					options: [
+						{
+							name: 'Form Submitted Text',
+							value: 'text',
+							description: 'Show a response text to the user',
+						},
+						{
+							name: 'Redirect URL',
+							value: 'redirect',
+							description: 'Redirect the user to a URL',
+						},
+					],
+				},
+				{
+					displayName: 'Text to Show',
+					name: 'formSubmittedText',
+					description:
+						"The text displayed to users after they fill the form. Leave it empty if don't want to show any additional text.",
+					type: 'string',
+					default: 'Your response has been recorded',
+					displayOptions: {
+						show: {
+							respondWith: ['text'],
+						},
+					},
+				},
+				{
+					// eslint-disable-next-line n8n-nodes-base/node-param-display-name-miscased
+					displayName: 'URL to Redirect to',
+					name: 'redirectUrl',
+					description:
+						'The URL to redirect users to after they fill the form. Must be a valid URL.',
+					type: 'string',
+					default: '',
+					validateType: 'url',
+					placeholder: 'e.g. http://www.n8n.io',
+					displayOptions: {
+						show: {
+							respondWith: ['redirect'],
+						},
+					},
+				},
+			],
+		},
+	],
+};
 export class Orchestro implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Orchestro',
@@ -159,9 +222,11 @@ export class Orchestro implements INodeType {
 				displayName: 'Elements',
 				name: 'elements',
 				type: 'fixedCollection',
+				placeholder: 'Add Element',
 				typeOptions: {
 					multipleValues: true,
 					multipleValueButtonText: 'Add Element',
+					sortable: true
 				},
 				default: {
 					element: [
@@ -318,6 +383,17 @@ export class Orchestro implements INodeType {
 								},
 							},
 							{
+								displayName: 'Show execution button only',
+								name: 'showExecutionButtonOnly',
+								type: 'boolean',
+								default: false,
+								displayOptions: {
+									show: {
+										type: ['webhook'],
+									},
+								},
+							},
+							{
 								displayName: 'URL',
 								name: 'url',
 								type: 'string',
@@ -403,9 +479,10 @@ export class Orchestro implements INodeType {
 								displayName: 'Fields',
 								name: 'fields',
 								type: 'fixedCollection',
+								placeholder: 'Add Field',
 								typeOptions: {
 									multipleValues: true,
-									multipleValueButtonText: 'Add Field',
+									sortable: true,
 								},
 								default: {
 									field: [
@@ -589,7 +666,7 @@ export class Orchestro implements INodeType {
 					/* eslint-enable */
 					},
 				],
-			},
+			}
 		],
 	};
 
