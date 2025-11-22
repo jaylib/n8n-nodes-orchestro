@@ -1,8 +1,6 @@
 import type {
 	IExecuteFunctions,
-	ILoadOptionsFunctions,
 	INodeExecutionData,
-	INodePropertyOptions,
 	INodeProperties,
 	INodeType,
 	INodeTypeDescription,
@@ -48,16 +46,6 @@ function addIdsToArrayElements(data: unknown): unknown {
 }
 
 // Type for workflow node structure
-interface WorkflowNodeData {
-	id: string;
-	name?: string;
-	type: string;
-}
-
-// Extended workflow interface to access nodes
-interface WorkflowWithNodes {
-	nodes?: Record<string, WorkflowNodeData>;
-}
 
 export const respondWithOptions: INodeProperties = {
 	displayName: 'Form Response',
@@ -248,7 +236,7 @@ export class Orchestro implements INodeType {
 						typeOptions: {
 							multipleValueButtonText: 'Add Element',
 						},
-						/* eslint-disable -- Custom field order for webhook fields */
+						/* eslint-disable -- Custom field order for workflowTrigger fields */
 						values: [
 							{
 								displayName: 'Element Type',
@@ -276,8 +264,8 @@ export class Orchestro implements INodeType {
 										value: 'text',
 									},
 									{
-										name: 'Webhook',
-										value: 'webhook',
+										name: 'Workflow Trigger',
+										value: 'workflowTrigger',
 									},
 								],
 								default: 'text',
@@ -340,10 +328,10 @@ export class Orchestro implements INodeType {
 								name: 'title',
 								type: 'string',
 								default: '',
-								placeholder: 'Enter a title for the webhook usage',
+								placeholder: 'Enter a title for the workflow trigger usage',
 								displayOptions: {
 									show: {
-										type: ['webhook'],
+										type: ['workflowTrigger'],
 									},
 								},
 							},
@@ -352,10 +340,10 @@ export class Orchestro implements INodeType {
 								name: 'description',
 								type: 'string',
 								default: '',
-								placeholder: 'Enter a description for the webhook usage',
+								placeholder: 'Enter a description for the workflow trigger usage',
 								displayOptions: {
 									show: {
-										type: ['webhook'],
+										type: ['workflowTrigger'],
 									},
 								},
 							},
@@ -366,7 +354,7 @@ export class Orchestro implements INodeType {
 								default: true,
 								displayOptions: {
 									show: {
-										type: ['webhook'],
+										type: ['workflowTrigger'],
 									},
 								},
 							},
@@ -378,7 +366,7 @@ export class Orchestro implements INodeType {
 								placeholder: 'Enter execution button label',
 								displayOptions: {
 									show: {
-										type: ['webhook'],
+										type: ['workflowTrigger'],
 									},
 								},
 							},
@@ -389,7 +377,7 @@ export class Orchestro implements INodeType {
 								default: false,
 								displayOptions: {
 									show: {
-										type: ['webhook'],
+										type: ['workflowTrigger'],
 									},
 								},
 							},
@@ -399,10 +387,10 @@ export class Orchestro implements INodeType {
 								type: 'string',
 								required: true,
 								default: '',
-								placeholder: 'Enter webhook URL',
+								placeholder: 'Enter workflowTrigger URL',
 								displayOptions: {
 									show: {
-										type: ['webhook'],
+										type: ['workflowTrigger'],
 									},
 								},
 							},
@@ -444,7 +432,7 @@ export class Orchestro implements INodeType {
 								],
 								displayOptions: {
 									show: {
-										type: ['webhook'],
+										type: ['workflowTrigger'],
 									},
 								},
 							},
@@ -470,7 +458,7 @@ export class Orchestro implements INodeType {
 								],
 								displayOptions: {
 									show: {
-										type: ['webhook'],
+										type: ['workflowTrigger'],
 										httpMethod: ['POST', 'PUT', 'PATCH'],
 									},
 								},
@@ -495,7 +483,7 @@ export class Orchestro implements INodeType {
 								},
 								displayOptions: {
 									show: {
-										type: ['webhook'],
+										type: ['workflowTrigger'],
 										httpMethod: ['POST', 'PUT', 'PATCH'],
 										bodyType: ['customFields'],
 									},
@@ -588,7 +576,7 @@ export class Orchestro implements INodeType {
 								description: 'The JSON body to send with the request',
 								displayOptions: {
 									show: {
-										type: ['webhook'],
+										type: ['workflowTrigger'],
 										httpMethod: ['POST', 'PUT', 'PATCH'],
 										bodyType: ['jsonBody'],
 									},
@@ -671,25 +659,6 @@ export class Orchestro implements INodeType {
 	};
 
 	methods = {
-		loadOptions: {
-			async getWebhooks(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
-				const workflow = this.getWorkflow() as WorkflowWithNodes;
-				const allNodes = workflow.nodes || {};
-				
-				const webhookNodes: INodePropertyOptions[] = [];
-				
-				for (const node of Object.values(allNodes)) {
-					// if (node.type === 'n8n-nodes-base.webhook') {
-						webhookNodes.push({
-							name: node.name || node.id,
-							value: node.id,
-						});
-					// }
-				}
-				
-				return webhookNodes;
-			},
-		},
 	};
 
 	// The function below is responsible for actually doing whatever this node
