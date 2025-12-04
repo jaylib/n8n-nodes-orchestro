@@ -667,6 +667,7 @@ export class Orchestro implements INodeType {
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
 		const items = this.getInputData();
 		const executionId = this.getExecutionId();
+		const workflowId = this.getWorkflow().id;
 		let item: INodeExecutionData;
 		let title: string;
 		let body: string;
@@ -699,8 +700,8 @@ export class Orchestro implements INodeType {
 					// Add UUID id to every element in arrays that don't have one
 					const jsonDataWithIds = addIdsToArrayElements(jsonData);
 					const processedData = typeof jsonDataWithIds === 'object' && jsonDataWithIds !== null && !Array.isArray(jsonDataWithIds)
-						? { ...jsonDataWithIds as Record<string, unknown>, executionId }
-						: { data: jsonDataWithIds, executionId };
+						? { ...jsonDataWithIds as Record<string, unknown>, executionId, workflowId }
+						: { data: jsonDataWithIds, executionId, workflowId };
 					requestBody = {
 						title,
 						body,
@@ -750,6 +751,7 @@ export class Orchestro implements INodeType {
 						body,
 						data: { 
 							executionId,
+							workflowId,
 							elements: elements 
 						},
 					};
@@ -769,6 +771,7 @@ export class Orchestro implements INodeType {
 					title,
 					body,
 					executionId,
+					workflowId,
 					payload: payloadType === 'list' ? { type: 'list', elements } : payloadType === 'json' ? { type: 'json', data: requestBody.data } : null,
 					response
 				};
