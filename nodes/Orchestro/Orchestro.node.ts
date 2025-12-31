@@ -146,7 +146,7 @@ export class Orchestro implements INodeType {
 			},
 			{
 				displayName: 'User ID',
-				name: 'userId',
+				name: 'userIds',
 				type: 'fixedCollection',
 				placeholder: 'Add User ID',
 				typeOptions: {
@@ -710,7 +710,7 @@ export class Orchestro implements INodeType {
 			try {
 				title = this.getNodeParameter('title', itemIndex, '') as string;
 				body = this.getNodeParameter('body', itemIndex, '') as string;
-				const userIdParam = this.getNodeParameter('userId', itemIndex, { userId: [] }) as {
+				const userIdParam = this.getNodeParameter('userIds', itemIndex, { userId: [] }) as {
 					userId?: Array<{ value: string }>;
 				};
 				// Extract user IDs from fixedCollection structure
