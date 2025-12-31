@@ -147,10 +147,40 @@ export class Orchestro implements INodeType {
 			{
 				displayName: 'User ID',
 				name: 'userId',
-				type: 'string',
+				type: 'fixedCollection',
+				placeholder: 'Add User ID',
+				typeOptions: {
+					multipleValues: true,
+					multipleValueButtonText: 'Add User ID',
+				},
 				required: true,
-				default: '',
-				placeholder: 'Enter user ID',
+				default: {
+					userId: [
+						{
+							value: '',
+						},
+					],
+				},
+				options: [
+					{
+						displayName: 'User ID',
+						name: 'userId',
+						typeOptions: {
+							multipleValueButtonText: 'Add User ID',
+						},
+						values: [
+							{
+								displayName: 'User ID',
+								name: 'value',
+								type: 'string',
+								required: true,
+								default: '',
+								placeholder: 'Enter user ID',
+							},
+						],
+					},
+				],
+				description: 'Add one or more user IDs to send the notification to',
 			},
 			{
 				displayName: 'Payload Type',
@@ -671,7 +701,7 @@ export class Orchestro implements INodeType {
 		let item: INodeExecutionData;
 		let title: string;
 		let body: string;
-		let userId: string;
+		let userIds: string[];
 		let payloadType: string;
 		let elements: Array<{ type: string; text?: string; title?: string; url?: string; linkText?: string; markdown?: string; httpMethod?: string; bodyType?: string; jsonBody?: string; fields?: { field?: Array<{ key: string; valueType?: string; value: string | number | boolean }> }; name?: string; description?: string; primary?: boolean; executionButtonLabel?: string; imageSourceType?: string; base64?: string; imageUrl?: string }>;
 
@@ -680,9 +710,20 @@ export class Orchestro implements INodeType {
 			try {
 				title = this.getNodeParameter('title', itemIndex, '') as string;
 				body = this.getNodeParameter('body', itemIndex, '') as string;
-				userId = this.getNodeParameter('userId', itemIndex, '') as string;
+				const userIdParam = this.getNodeParameter('userId', itemIndex, { userId: [] }) as {
+					userId?: Array<{ value: string }>;
+				};
+				// Extract user IDs from fixedCollection structure
+				userIds = (userIdParam?.userId || []).map((item) => item.value).filter((id) => id && id.trim() !== '');
 				payloadType = this.getNodeParameter('payloadType', itemIndex, 'none') as string;
 				item = items[itemIndex];
+
+				// Validate that at least one user ID is provided
+				if (userIds.length === 0) {
+					throw new NodeOperationError(this.getNode(), 'At least one User ID is required', {
+						itemIndex,
+					});
+				}
 
 				// Prepare request body based on payload type
 				let requestBody: { title: string; body: string; data: Record<string, unknown> };
@@ -757,13 +798,26 @@ export class Orchestro implements INodeType {
 					};
 				}
 
-				// Send HTTP request
-				const response = await this.helpers.httpRequest({
-					method: 'POST',
-					url: `https://orchestro.app/api/push/${userId}`,
-					body: requestBody,
-					json: true,
-				});
+				// Send HTTP request for each user ID
+				const responses: Array<{ userId: string; response: unknown; error?: unknown }> = [];
+				for (const userId of userIds) {
+					try {
+						const response = await this.helpers.httpRequest({
+							method: 'POST',
+							url: `https://orchestro.app/api/push/${userId}`,
+							body: requestBody,
+							json: true,
+						});
+						responses.push({ userId, response });
+					} catch (error) {
+						// If continueOnFail is enabled, collect errors; otherwise throw
+						if (this.continueOnFail()) {
+							responses.push({ userId, response: null, error });
+						} else {
+							throw error;
+						}
+					}
+				}
 
 				// Add response to output
 				item.json = {
@@ -772,8 +826,9 @@ export class Orchestro implements INodeType {
 					body,
 					executionId,
 					workflowId,
+					userIds,
 					payload: payloadType === 'list' ? { type: 'list', elements } : payloadType === 'json' ? { type: 'json', data: requestBody.data } : null,
-					response
+					responses
 				};
 			} catch (error) {
 				// Handle errors
