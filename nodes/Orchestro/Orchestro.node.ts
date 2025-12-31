@@ -155,7 +155,7 @@ export class Orchestro implements INodeType {
 				},
 				required: true,
 				default: {
-					userId: [
+					values: [
 						{
 							value: '',
 						},
