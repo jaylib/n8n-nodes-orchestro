@@ -164,7 +164,7 @@ export class Orchestro implements INodeType {
 				options: [
 					{
 						displayName: 'User ID',
-						name: 'userId',
+						name: 'values',
 						typeOptions: {
 							multipleValueButtonText: 'Add User ID',
 						},
@@ -710,11 +710,11 @@ export class Orchestro implements INodeType {
 			try {
 				title = this.getNodeParameter('title', itemIndex, '') as string;
 				body = this.getNodeParameter('body', itemIndex, '') as string;
-				const userIdParam = this.getNodeParameter('userIds', itemIndex, { userId: [] }) as {
-					userId?: Array<{ value: string }>;
+				const userIdParam = this.getNodeParameter('userIds', itemIndex, { values: [] }) as {
+					values?: Array<{ value: string }>;
 				};
 				// Extract user IDs from fixedCollection structure
-				userIds = (userIdParam?.userId || []).map((item) => item.value).filter((id) => id && id.trim() !== '');
+				userIds = (userIdParam?.values || []).map((item) => item.value).filter((id) => id && id.trim() !== '');
 				payloadType = this.getNodeParameter('payloadType', itemIndex, 'none') as string;
 				item = items[itemIndex];
 
