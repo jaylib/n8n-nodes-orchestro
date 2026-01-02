@@ -741,10 +741,16 @@ export class Orchestro implements INodeType {
 						} as typeof element & { id: string; workflowTriggerOptions?: Record<string, unknown> };
 						
 						// Flatten workflowTriggerOptions: merge options into element
-						if (flattenedElement.type === 'workflowTrigger' && flattenedElement.workflowTriggerOptions) {
-							const options = flattenedElement.workflowTriggerOptions as Record<string, unknown>;
-							Object.assign(flattenedElement, options);
-							delete flattenedElement.workflowTriggerOptions;
+						if (flattenedElement.type === 'workflowTrigger') {
+							if (flattenedElement.workflowTriggerOptions) {
+								const options = flattenedElement.workflowTriggerOptions as Record<string, unknown>;
+								Object.assign(flattenedElement, options);
+								delete flattenedElement.workflowTriggerOptions;
+							}
+							// Set default primary value if not specified
+							if ((flattenedElement as Record<string, unknown>).primary === undefined) {
+								(flattenedElement as Record<string, unknown>).primary = true;
+							}
 						}
 						
 						// Flatten fields structure: { fields: { field: [] } } -> { fields: [] }
