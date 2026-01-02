@@ -184,7 +184,7 @@ export class Orchestro implements INodeType {
 								default: '',
 								placeholder: 'e.g. abc123-def456-ghi789',
 								description: 'The unique ID of the device that will receive this notification',
-								hint: 'Find this in the Orchestro app → Settings → Notifications',
+								hint: 'Tip: You can also add your device directly from the Orchestro app via Notification Settings',
 							},
 						],
 					},
@@ -382,7 +382,7 @@ export class Orchestro implements INodeType {
 										type: ['workflowTrigger'],
 									},
 								},
-							},
+							},	
 							{
 								displayName: 'URL',
 								name: 'url',
