@@ -127,31 +127,38 @@ export class Orchestro implements INodeType {
 			// Node properties which the user gets displayed and
 			// can change on the node.
 			{
+				displayName: 'Send rich, interactive push notifications to the Orchestro app. Include text, images, links, or workflow triggers to enable human-in-the-loop actions.',
+				name: 'nodeNotice',
+				type: 'notice',
+				default: '',
+			},
+			{
 				displayName: 'Title',
 				name: 'title',
 				type: 'string',
 				default: '',
-				placeholder: 'Enter title',
+				placeholder: 'e.g. Workflow completed successfully',
+				description: 'The headline of your push notification. Keep it short and attention-grabbing.',
 			},
 			{
 				displayName: 'Body',
 				name: 'body',
 				type: 'string',
 				typeOptions: {
-					rows: 5,
+					rows: 3,
 				},
 				default: '',
-				placeholder: 'Enter body text',
-				description: 'The body text (multiline)',
+				placeholder: 'e.g. Data sync finished. 42 records processed.',
+				description: 'The main message shown in the push notification. Provide context or a summary of what needs attention.',
 			},
 			{
-				displayName: 'User ID',
+				displayName: 'Device Identifiers',
 				name: 'userIds',
 				type: 'fixedCollection',
-				placeholder: 'Add User ID',
+				placeholder: 'Add Device Identifier',
 				typeOptions: {
 					multipleValues: true,
-					multipleValueButtonText: 'Add User ID',
+					multipleValueButtonText: 'Add Device Identifier',
 				},
 				required: true,
 				default: {
@@ -163,73 +170,79 @@ export class Orchestro implements INodeType {
 				},
 				options: [
 					{
-						displayName: 'User ID',
+						displayName: 'Device Identifier',
 						name: 'values',
 						typeOptions: {
-							multipleValueButtonText: 'Add User ID',
+							multipleValueButtonText: 'Add Device Identifier',
 						},
 						values: [
 							{
-								displayName: 'User ID',
+								displayName: 'Device Identifier',
 								name: 'value',
 								type: 'string',
 								required: true,
 								default: '',
-								placeholder: 'Enter user ID',
+								placeholder: 'e.g. abc123-def456-ghi789',
+								description: 'The unique ID of the device that will receive this notification',
+								hint: 'Find this in the Orchestro app → Settings → Notifications',
 							},
 						],
 					},
 				],
-				description: 'Add one or more user IDs to send the notification to',
+				description: 'Identifies which device(s) will receive the push notification. Find your Device Identifier in the Orchestro app under Settings → Device Info.',
 			},
 			{
-				displayName: 'Payload Type',
+				displayName: 'Rich Notification Content',
 				name: 'payloadType',
 				type: 'options',
 				options: [
+					// {
+					// 	name: 'JSON',
+					// 	value: 'json',
+					// },
 					{
-						name: 'JSON',
-						value: 'json',
-					},
-					{
-						name: 'List of Elements',
+						name: 'List of Content Blocks',
 						value: 'list',
+						description: 'Build rich notifications with multiple content blocks like text, images, links, and interactive triggers',
 					},
 					{
 						name: 'Markdown',
 						value: 'markdown',
+						description: 'Simple formatted content using Markdown syntax',
 					},
 					{
 						name: 'No Payload',
 						value: 'none',
+						description: 'Send only the title and body without additional content',
 					},
 				],
 				default: 'none',
+				description: 'Add extra content that is displayed when the notification is opened. Use blocks for interactive elements like buttons or forms, or markdown for formatted text.',
 			},
+			// {
+			// 	displayName: 'Payload JSON',
+			// 	name: 'payloadJson',
+			// 	type: 'string',
+			// 	typeOptions: {
+			// 		rows: 10,
+			// 	},
+			// 	default: '',
+			// 	placeholder: 'Enter JSON content',
+			// 	displayOptions: {
+			// 		show: {
+			// 			payloadType: ['json'],
+			// 		},
+			// 	},
+			// },
 			{
-				displayName: 'Payload JSON',
-				name: 'payloadJson',
-				type: 'string',
-				typeOptions: {
-					rows: 10,
-				},
-				default: '',
-				placeholder: 'Enter JSON content',
-				displayOptions: {
-					show: {
-						payloadType: ['json'],
-					},
-				},
-			},
-			{
-				displayName: 'Payload Markdown',
+				displayName: 'Markdown',
 				name: 'payloadMarkdown',
 				type: 'string',
 				typeOptions: {
 					rows: 10,
 				},
 				default: '',
-				placeholder: 'Enter markdown content',
+				placeholder: 'Enter markdown',
 				displayOptions: {
 					show: {
 						payloadType: ['markdown'],
@@ -237,13 +250,13 @@ export class Orchestro implements INodeType {
 				},
 			},
 			{
-				displayName: 'Elements',
+				displayName: 'Blocks',
 				name: 'elements',
 				type: 'fixedCollection',
-				placeholder: 'Add Element',
+				placeholder: 'Add Block',
 				typeOptions: {
 					multipleValues: true,
-					multipleValueButtonText: 'Add Element',
+					multipleValueButtonText: 'Add Block',
 					sortable: true
 				},
 				default: {
@@ -261,41 +274,47 @@ export class Orchestro implements INodeType {
 				},
 				options: [
 					{
-						displayName: 'Element',
+						displayName: 'Block',
 						name: 'element',
 						typeOptions: {
-							multipleValueButtonText: 'Add Element',
+							multipleValueButtonText: 'Add Block',
 						},
 						/* eslint-disable -- Custom field order for workflowTrigger fields */
 						values: [
 							{
-								displayName: 'Element Type',
+								displayName: 'Block Type',
 								name: 'type',
 								type: 'options',
 								options: [
 									{
 										name: 'Headline',
 										value: 'headline',
+										description: 'Bold section header to organize your content',
 									},
 									{
 										name: 'Image',
 										value: 'image',
+										description: 'Display an image from a URL or Base64 string',
 									},
 									{
 										name: 'Link',
 										value: 'url',
+										description: 'Clickable link with custom text',
 									},
 									{
 										name: 'Markdown',
 										value: 'markdown',
+										description: 'Rich text with formatting using Markdown syntax',
 									},
 									{
 										name: 'Text',
 										value: 'text',
+										description: 'Simple plain text content',
 									},
 									{
 										name: 'Workflow Trigger',
 										value: 'workflowTrigger',
+										description: 'Interactive button or form to trigger a webhook',
 									},
 								],
 								default: 'text',
@@ -354,57 +373,10 @@ export class Orchestro implements INodeType {
 								},
 							},
 							{
-								displayName: 'Title',
-								name: 'title',
-								type: 'string',
+								displayName: 'Adds an interactive element with a button or form fields to trigger a webhook or form. Perfect for human-in-the-loop workflows — users can approve, reject, submit data, or trigger actions directly from the notification.',
+								name: 'workflowTriggerNotice',
+								type: 'notice',
 								default: '',
-								placeholder: 'Enter a title for the workflow trigger usage',
-								displayOptions: {
-									show: {
-										type: ['workflowTrigger'],
-									},
-								},
-							},
-							{
-								displayName: 'Description',
-								name: 'description',
-								type: 'string',
-								default: '',
-								placeholder: 'Enter a description for the workflow trigger usage',
-								displayOptions: {
-									show: {
-										type: ['workflowTrigger'],
-									},
-								},
-							},
-							{
-								displayName: 'Primary',
-								name: 'primary',
-								type: 'boolean',
-								default: true,
-								displayOptions: {
-									show: {
-										type: ['workflowTrigger'],
-									},
-								},
-							},
-							{
-								displayName: 'Execution Button Label',
-								name: 'executionButtonLabel',
-								type: 'string',
-								default: '',
-								placeholder: 'Enter execution button label',
-								displayOptions: {
-									show: {
-										type: ['workflowTrigger'],
-									},
-								},
-							},
-							{
-								displayName: 'Show execution button only',
-								name: 'showExecutionButtonOnly',
-								type: 'boolean',
-								default: false,
 								displayOptions: {
 									show: {
 										type: ['workflowTrigger'],
@@ -417,7 +389,9 @@ export class Orchestro implements INodeType {
 								type: 'string',
 								required: true,
 								default: '',
-								placeholder: 'Enter workflowTrigger URL',
+								placeholder: 'e.g. https://your-n8n-instance.com/webhook/abc123',
+								description: 'Used to identify the trigger and display its form fields or parameters. This URL will be called when the user executes the action.',
+								hint: 'Paste the Production URL from your Webhook or Form trigger node',
 								displayOptions: {
 									show: {
 										type: ['workflowTrigger'],
@@ -425,192 +399,181 @@ export class Orchestro implements INodeType {
 								},
 							},
 							{
-								displayName: 'HTTP Method',
-								name: 'httpMethod',
-								type: 'options',
-								required: true,
-								default: 'GET',
-								options: [
-									{
-										name: 'DELETE',
-										value: 'DELETE',
-									},
-									{
-										name: 'GET',
-										value: 'GET',
-									},
-									{
-										name: 'HEAD',
-										value: 'HEAD',
-									},
-									{
-										name: 'OPTIONS',
-										value: 'OPTIONS',
-									},
-									{
-										name: 'PATCH',
-										value: 'PATCH',
-									},
-									{
-										name: 'POST',
-										value: 'POST',
-									},
-									{
-										name: 'PUT',
-										value: 'PUT',
-									},
-								],
+								displayName: 'Options',
+								name: 'workflowTriggerOptions',
+								type: 'collection',
+								placeholder: 'Add Option',
+								default: {},
 								displayOptions: {
 									show: {
 										type: ['workflowTrigger'],
 									},
 								},
-							},
-							{
-								displayName: 'Body Type',
-								name: 'bodyType',
-								type: 'options',
-								required: true,
-								default: 'jsonBody',
 								options: [
 									{
-										name: 'Custom Fields',
-										value: 'customFields',
+										displayName: 'Title',
+										name: 'title',
+										type: 'string',
+										default: '',
+										placeholder: 'Enter a title for the workflow trigger usage',
 									},
 									{
-										name: 'JSON Body',
-										value: 'jsonBody',
+										displayName: 'Description',
+										name: 'description',
+										type: 'string',
+										default: '',
+										placeholder: 'Enter a description for the workflow trigger usage',
 									},
 									{
-										name: 'None',
-										value: 'none',
+										displayName: 'Primary',
+										name: 'primary',
+										type: 'boolean',
+										default: true,
 									},
-								],
-								displayOptions: {
-									show: {
-										type: ['workflowTrigger'],
-										httpMethod: ['POST', 'PUT', 'PATCH'],
-									},
-								},
-							},
-							{
-								displayName: 'Fields',
-								name: 'fields',
-								type: 'fixedCollection',
-								placeholder: 'Add Field',
-								typeOptions: {
-									multipleValues: true,
-									sortable: true,
-								},
-								default: {
-									field: [
-										{
-											key: '',
-											valueType: 'text',
-											value: '',
-										},
-									],
-								},
-								displayOptions: {
-									show: {
-										type: ['workflowTrigger'],
-										httpMethod: ['POST', 'PUT', 'PATCH'],
-										bodyType: ['customFields'],
-									},
-								},
-								options: [
 									{
-										displayName: 'Field',
-										name: 'field',
-										typeOptions: {
-											multipleValueButtonText: 'Add Field',
-										},
-										values: [
+										displayName: 'Execution Button Label',
+										name: 'executionButtonLabel',
+										type: 'string',
+										default: '',
+										placeholder: 'Enter execution button label',
+									},
+									{
+										displayName: 'Show Execution Button Only',
+										name: 'showExecutionButtonOnly',
+										type: 'boolean',
+										default: false,
+									},
+									{
+										displayName: 'HTTP Method',
+										name: 'httpMethod',
+										type: 'options',
+										default: 'POST',
+										options: [
 											{
-												displayName: 'Key',
-												name: 'key',
-												type: 'string',
-												required: true,
-												default: '',
-												placeholder: 'Enter field key',
+												name: 'DELETE',
+												value: 'DELETE',
 											},
 											{
-												displayName: 'Value Type',
-												name: 'valueType',
-												type: 'options',
-												required: true,
-												default: 'text',
-												options: [
+												name: 'GET',
+												value: 'GET',
+											},
+											{
+												name: 'HEAD',
+												value: 'HEAD',
+											},
+											{
+												name: 'OPTIONS',
+												value: 'OPTIONS',
+											},
+											{
+												name: 'PATCH',
+												value: 'PATCH',
+											},
+											{
+												name: 'POST',
+												value: 'POST',
+											},
+											{
+												name: 'PUT',
+												value: 'PUT',
+											},
+										],
+									},
+									{
+										displayName: 'Prefill Data',
+										name: 'bodyType',
+										type: 'options',
+										default: 'none',
+										description: 'Prefill form fields or webhook parameters with default values before the user sees them',
+										hint: 'Use this to pre-populate fields so users don\'t have to enter them manually',
+										options: [
+											{
+												name: 'No Prefill',
+												value: 'none',
+												description: 'Let users fill in all fields themselves',
+											},
+											{
+												name: 'Field Values',
+												value: 'customFields',
+												description: 'Prefill specific fields by name',
+											},
+											{
+												name: 'JSON',
+												value: 'jsonBody',
+												description: 'Prefill using a JSON object',
+											},
+										],
+									},
+									{
+										displayName: 'Prefill JSON',
+										name: 'jsonBody',
+										type: 'string',
+										typeOptions: {
+											rows: 5,
+										},
+										default: '',
+										placeholder: '{ "fieldName": "value", "anotherField": 123 }',
+										description: 'JSON object with field names and their prefill values. Field names must match the form or webhook parameters.',
+										hint: 'Add "Prefill Data" option and select "JSON" to use this',
+									},
+									{
+										displayName: 'Prefill Fields',
+										name: 'fields',
+										type: 'fixedCollection',
+										placeholder: 'Add Field',
+										typeOptions: {
+											multipleValues: true,
+											sortable: true,
+										},
+										default: {},
+										description: 'Define field names and their prefill values. Field names must match the form or webhook parameters.',
+										hint: 'Add "Prefill Data" option and select "Field Values" to use this',
+										options: [
+											{
+												displayName: 'Field',
+												name: 'field',
+												values: [
 													{
-														name: 'Boolean',
-														value: 'boolean',
+														displayName: 'Field Name',
+														name: 'key',
+														type: 'string',
+														default: '',
+														placeholder: 'e.g. email, amount, approved',
+														description: 'The name of the form field or webhook parameter to prefill',
 													},
 													{
-														name: 'Number',
-														value: 'number',
+														displayName: 'Value Type',
+														name: 'valueType',
+														type: 'options',
+														default: 'text',
+														options: [
+															{
+																name: 'Text',
+																value: 'text',
+															},
+															{
+																name: 'Number',
+																value: 'number',
+															},
+															{
+																name: 'Boolean',
+																value: 'boolean',
+															},
+														],
 													},
 													{
-														name: 'Text',
-														value: 'text',
+														displayName: 'Value',
+														name: 'value',
+														type: 'string',
+														default: '',
+														placeholder: 'Enter the prefill value',
+														description: 'The value to prefill for this field',
 													},
 												],
-											},
-											{
-												displayName: 'Value',
-												name: 'value',
-												type: 'string',
-												default: '',
-												placeholder: 'Enter field value',
-												displayOptions: {
-													show: {
-														valueType: ['text'],
-													},
-												},
-											},
-											{
-												displayName: 'Value',
-												name: 'value',
-												type: 'number',
-												default: 0,
-												placeholder: 'Enter field value',
-												displayOptions: {
-													show: {
-														valueType: ['number'],
-													},
-												},
-											},
-											{
-												displayName: 'Value',
-												name: 'value',
-												type: 'boolean',
-												default: false,
-												displayOptions: {
-													show: {
-														valueType: ['boolean'],
-													},
-												},
 											},
 										],
 									},
 								],
-							},
-							{
-								displayName: 'JSON Body',
-								name: 'jsonBody',
-								type: 'string',
-								typeOptions: {
-									rows: 5,
-								},
-								default: '',
-								placeholder: 'Enter JSON body',
-								description: 'The JSON body to send with the request',
-								displayOptions: {
-									show: {
-										type: ['workflowTrigger'],
-										httpMethod: ['POST', 'PUT', 'PATCH'],
-										bodyType: ['jsonBody'],
-									},
-								},
 							},
 							{
 								displayName: 'Link Text',
@@ -703,7 +666,7 @@ export class Orchestro implements INodeType {
 		let body: string;
 		let userIds: string[];
 		let payloadType: string;
-		let elements: Array<{ type: string; text?: string; title?: string; url?: string; linkText?: string; markdown?: string; httpMethod?: string; bodyType?: string; jsonBody?: string; fields?: { field?: Array<{ key: string; valueType?: string; value: string | number | boolean }> }; name?: string; description?: string; primary?: boolean; executionButtonLabel?: string; imageSourceType?: string; base64?: string; imageUrl?: string }>;
+		let elements: Array<{ type: string; text?: string; title?: string; url?: string; linkText?: string; markdown?: string; httpMethod?: string; bodyType?: string; jsonBody?: string; fields?: { field?: Array<{ key: string; valueType?: string; value: string | number | boolean }> }; name?: string; description?: string; primary?: boolean; executionButtonLabel?: string; showExecutionButtonOnly?: boolean; imageSourceType?: string; base64?: string; imageUrl?: string; workflowTriggerOptions?: Record<string, unknown> }>;
 
 		// Iterates over all input items and send HTTP request for each item
 		for (let itemIndex = 0; itemIndex < items.length; itemIndex++) {
@@ -720,7 +683,7 @@ export class Orchestro implements INodeType {
 
 				// Validate that at least one user ID is provided
 				if (userIds.length === 0) {
-					throw new NodeOperationError(this.getNode(), 'At least one User ID is required', {
+					throw new NodeOperationError(this.getNode(), 'At least one device identifier is required', {
 						itemIndex,
 					});
 				}
@@ -753,7 +716,7 @@ export class Orchestro implements INodeType {
 					// Get elements based on payload type
 					if (payloadType === 'list') {
 						const elementsParam = this.getNodeParameter('elements', itemIndex, { element: [] }) as {
-							element?: Array<{ type: string; text?: string; title?: string; url?: string; linkText?: string; markdown?: string; httpMethod?: string; bodyType?: string; jsonBody?: string; fields?: { field?: Array<{ key: string; valueType?: string; value: string | number | boolean }> }; name?: string; description?: string; primary?: boolean; executionButtonLabel?: string; imageSourceType?: string; base64?: string; imageUrl?: string }>;
+							element?: Array<{ type: string; text?: string; title?: string; url?: string; linkText?: string; markdown?: string; httpMethod?: string; bodyType?: string; jsonBody?: string; fields?: { field?: Array<{ key: string; valueType?: string; value: string | number | boolean }> }; name?: string; description?: string; primary?: boolean; executionButtonLabel?: string; showExecutionButtonOnly?: boolean; imageSourceType?: string; base64?: string; imageUrl?: string; workflowTriggerOptions?: Record<string, unknown> }>;
 						};
 						// fixedCollection stores data under the option name (element)
 						elements = elementsParam?.element || [];
@@ -775,7 +738,14 @@ export class Orchestro implements INodeType {
 						const flattenedElement = {
 							...element,
 							id: generateUUID(),
-						} as typeof element & { id: string };
+						} as typeof element & { id: string; workflowTriggerOptions?: Record<string, unknown> };
+						
+						// Flatten workflowTriggerOptions: merge options into element
+						if (flattenedElement.type === 'workflowTrigger' && flattenedElement.workflowTriggerOptions) {
+							const options = flattenedElement.workflowTriggerOptions as Record<string, unknown>;
+							Object.assign(flattenedElement, options);
+							delete flattenedElement.workflowTriggerOptions;
+						}
 						
 						// Flatten fields structure: { fields: { field: [] } } -> { fields: [] }
 						if (flattenedElement.fields && typeof flattenedElement.fields === 'object' && 'field' in flattenedElement.fields) {
