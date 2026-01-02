@@ -67,10 +67,21 @@ Identifies which device(s) will receive the push notification. You can send the 
 - **Required:** Yes (at least one)
 - **Example:** `abc123-def456-ghi789`
 
-**Finding your Device Identifier:**
+**Adding your Device Identifier:**
+
+There are two ways to configure which devices receive notifications:
+
+**Option 1: From the Orchestro App (Recommended)**
+1. Open the Orchestro app
+2. Open any workflow and go to notification settings via the menu in the toolbar
+4. You'll see a list of Orchestro nodes in your workflows
+5. Tap **"Add my device to all nodes for me"** to automatically configure all nodes, or tap on individual nodes to configure them selectively
+
+**Option 2: Manual Configuration**
 1. Open the Orchestro app
 2. Go to **Settings → Notifications**
 3. Copy your Device Identifier
+4. Paste it into the Device Identifier field in your n8n Orchestro node
 
 You can add multiple Device Identifiers to send the notification to several devices at once.
 
