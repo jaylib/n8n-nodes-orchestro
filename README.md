@@ -10,6 +10,7 @@ Orchestro enables human-in-the-loop workflows by allowing users to receive actio
 
 - [Installation](#installation)
 - [Getting Started](#getting-started)
+- [Notification Inbox](#notification-inbox)
 - [Configuration Options](#configuration-options)
   - [Title](#title)
   - [Body](#body)
@@ -38,6 +39,16 @@ Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes
 4. Enter your Device Identifier
 5. Configure the notification title, body, and optional rich content
 6. Execute your workflow to receive the notification
+
+## Notification Inbox
+
+All workflow notifications are collected in one place — the Orchestro Inbox. Think of it like an email inbox, but for your automations.
+
+- **Never miss a notification** — Even if you didn't catch a push notification, it's waiting in the inbox
+- **Review past notifications** — Scroll through notification history to find previous reports, approvals, or updates
+- **Take action anytime** — Interactive notifications remain actionable from the inbox, so users can approve requests or submit data whenever they're ready
+- **Stay organized** — Keep track of what workflows are doing across all automations
+- **See status at a glance** — Notifications are visually distinguished by their status: action required, action completed, or informational results only
 
 ## Configuration Options
 
@@ -205,60 +216,100 @@ Request confirmation before executing critical actions:
 
 ## Examples
 
-### Simple Notification
+### Triggered Workflow Notification
+
+A webhook or form trigger completes processing and notifies the user.
 
 ```
-Title: Backup Complete
-Body: Daily database backup finished successfully at 3:00 AM.
+Title: Video Transcription Complete
+Body: Your YouTube tutorial has been converted to text and is ready for review.
 Rich Notification Content: No Payload
 ```
 
-### Notification with Markdown
+### Scheduled Report (Informational)
+
+A daily scheduled workflow curates tech news and delivers a digest. No action needed—just keeping you informed.
 
 ```
-Title: Weekly Report Ready
-Body: Your analytics report for the past week is ready.
+Title: Your Tech News Digest
+Body: AI curated today's top stories from your favorite sources.
 Rich Notification Content: Markdown
 
 Markdown Content:
-## Summary
-- **Total Users:** 1,234
-- **New Signups:** 89
-- **Revenue:** $12,450
+## Top Stories
 
-[View Full Report](https://example.com/report)
+**OpenAI Announces GPT-5 Preview**
+First look at next-generation capabilities with improved reasoning...
+
+**Apple's On-Device AI Strategy**
+New report reveals Apple's focus on privacy-first machine learning...
+
+**Startup Raises $50M for AI Code Review**
+Backed by Sequoia, aims to automate pull request reviews...
+
+[View All 12 Stories](https://example.com/digest)
 ```
 
-### Approval Request
+### Scheduled Content Performance (Informational)
+
+A weekly scheduled workflow analyzes your published content and reports the results.
 
 ```
-Title: Expense Approval Required
-Body: John Doe submitted an expense report for $450.
+Title: Weekly Content Report
+Body: Your blog and social media performance from the past 7 days.
 
 Blocks:
-1. Headline: "Expense Details"
-2. Text: "Trip to Client Meeting - $450"
-3. Workflow Trigger (Approve):
-   - URL: https://your-n8n.com/webhook/approve-expense
-   - Button Label: "Approve"
-4. Workflow Trigger (Reject):
-   - URL: https://your-n8n.com/webhook/reject-expense
-   - Button Label: "Reject"
+1. Headline: "Performance Summary"
+2. Markdown: "**Blog Views:** 2,847 (+12%)\n**Top Post:** 'Getting Started with n8n' - 892 views\n**Newsletter Opens:** 67%\n**New Subscribers:** 34"
+3. Link:
+   - Link Text: "View Full Analytics"
+   - URL: https://example.com/analytics
 ```
 
-### Data Collection with Prefill
+### Scheduled Draft for Approval
+
+A daily scheduled workflow monitors RSS feeds, drafts a blog post, and generates a thumbnail. Requires your approval before publishing—or refine the image first.
 
 ```
-Title: Confirm Shipment
-Body: Order #12345 is ready to ship.
+Title: Blog Draft Ready
+Body: AI generated a post and thumbnail from today's trending topics.
 
 Blocks:
-1. Workflow Trigger:
-   - URL: https://your-n8n.com/webhook/confirm-shipment
-   - Prefill Data: Field Values
-     - orderId: "12345"
-     - status: "shipped"
-   - Button Label: "Confirm Shipment"
+1. Headline: "Generated Article"
+2. Markdown: "**Title:** Why Every Developer Should Learn Prompt Engineering\n\n**Preview:**\nThree years ago, I thought prompt engineering was just a buzzword. Today, it's become my most valuable skill..."
+3. Headline: "Generated Thumbnail"
+4. Image:
+   - Image Source Type: URL
+   - Image URL: https://your-storage.com/generated/thumb_abc123.png
+5. Workflow Trigger (Publish):
+   - URL: https://your-n8n.com/webhook/publish-blog
+   - Button Label: "Publish to Blog"
+6. Workflow Trigger (Refine Image):
+   - URL: https://your-n8n.com/form/refine-thumbnail
+   - Title: "Refine Thumbnail"
+   - Description: "Describe what you'd like to change about the image"
+   - Button Label: "Regenerate Thumbnail"
+   - Primary: false
+7. Workflow Trigger (Discard):
+   - URL: https://your-n8n.com/webhook/discard-draft
+   - Button Label: "Discard"
+   - Primary: false
+```
+
+### Scheduled Newsletter for Approval
+
+A weekly scheduled workflow compiles saved articles into a newsletter. Requires confirmation before sending to subscribers.
+
+```
+Title: Newsletter Ready to Send
+Body: AI compiled this week's newsletter from your saved articles.
+
+Blocks:
+1. Headline: "This Week's Issue"
+2. Text: "12 articles curated, 3 original insights added, estimated read time: 8 minutes. Subscriber count: 2,847."
+3. Workflow Trigger:
+   - URL: https://your-n8n.com/webhook/send-newsletter
+   - Button Label: "Send to Subscribers"
 ```
 
 ## Resources
