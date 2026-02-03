@@ -110,16 +110,18 @@ export const respondWithOptions: INodeProperties = {
 	],
 };
 export class Orchestro implements INodeType {
-	description: INodeTypeDescription = {
-		displayName: 'Orchestro',
-		name: 'orchestro',
-		icon: { light: 'file:orchestro.v2.svg', dark: 'file:orchestro.dark.v2.svg' },
-		group: ['input'],
-		version: 1,
-		description: 'Orchestro node for n8n',
-		defaults: {
-			name: 'Orchestro',
-		},
+		description: INodeTypeDescription = {
+			displayName: 'Orchestro',
+			name: 'orchestro',
+			icon: { light: 'file:orchestro.v2.svg', dark: 'file:orchestro.dark.v2.svg' },
+			group: ['input'],
+			version: 1,
+			description: 'Orchestro node for n8n',
+			subtitle:
+				'={{ $parameter.operation === "approval" ? "Approve" : "Rich Notification" }}',
+			defaults: {
+				name: 'Orchestro',
+			},
 		inputs: [NodeConnectionTypes.Main],
 		outputs: [NodeConnectionTypes.Main],
 		usableAsTool: true,
@@ -133,12 +135,36 @@ export class Orchestro implements INodeType {
 				default: '',
 			},
 			{
+				displayName: 'Operation',
+				name: 'operation',
+				type: 'options',
+				options: [
+					{
+						name: 'Rich Notification',
+						value: 'richNotification',
+						description: 'Send a rich, interactive push notification.',
+					},
+					{
+						name: 'Approve',
+						value: 'approval',
+						description: 'Send an approval request notification.',
+					},
+				],
+				default: 'richNotification',
+				description: 'Choose the operation to perform in Orchestro.',
+			},
+			{
 				displayName: 'Title',
 				name: 'title',
 				type: 'string',
 				default: '',
 				placeholder: 'e.g. Workflow completed successfully',
-				description: 'The headline of your push notification. Keep it short and attention-grabbing.',
+				description: 'The headline of the notification. Keep it short and attention-grabbing.',
+				displayOptions: {
+					show: {
+						operation: ['richNotification', 'approval'],
+					},
+				},
 			},
 			{
 				displayName: 'Body',
@@ -149,7 +175,12 @@ export class Orchestro implements INodeType {
 				},
 				default: '',
 				placeholder: 'e.g. Data sync finished. 42 records processed.',
-				description: 'The main message shown in the push notification. Provide context or a summary of what needs attention.',
+				description: 'The main message shown in the notification. Provide context or a summary of what needs attention.',
+				displayOptions: {
+					show: {
+						operation: ['richNotification', 'approval'],
+					},
+				},
 			},
 			{
 				displayName: 'Device Identifiers',
@@ -189,7 +220,310 @@ export class Orchestro implements INodeType {
 						],
 					},
 				],
-				description: 'Identifies which device(s) will receive the push notification. Find your Device Identifier in the Orchestro app under Settings → Device Info.',
+				description: 'Identifies which device(s) will receive the notification. Find your Device Identifier in the Orchestro app under Settings → Device Info.',
+				displayOptions: {
+					show: {
+						operation: ['richNotification', 'approval'],
+					},
+				},
+			},
+			{
+				displayName: 'Review Content Format',
+				name: 'reviewContentType',
+				type: 'options',
+				options: [
+					{
+						name: 'List of Content Blocks',
+						value: 'list',
+						description: 'Build rich approval content with multiple blocks like text, images, and links',
+					},
+					{
+						name: 'Markdown',
+						value: 'markdown',
+						description: 'Simple formatted content using Markdown syntax',
+					},
+					{
+						name: 'No rich content',
+						value: 'none',
+						description: 'Send only the title and body without additional content',
+					},
+				],
+				default: 'markdown',
+				description: 'Choose how the review content is constructed before it is shown for approval.',
+				displayOptions: {
+					show: {
+						operation: ['approval'],
+					},
+				},
+			},
+			{
+				displayName: 'Markdown',
+				name: 'reviewContentMarkdown',
+				type: 'string',
+				typeOptions: {
+					rows: 10,
+				},
+				default: '',
+				placeholder: 'Describe what should be approved or refined',
+				displayOptions: {
+					show: {
+						operation: ['approval'],
+						reviewContentType: ['markdown'],
+					},
+				},
+			},
+			{
+				displayName: 'Blocks',
+				name: 'reviewContentElements',
+				type: 'fixedCollection',
+				placeholder: 'Add Block',
+				typeOptions: {
+					multipleValues: true,
+					multipleValueButtonText: 'Add Block',
+					sortable: true,
+				},
+				default: {
+					element: [
+						{
+							type: 'text',
+							text: '',
+						},
+					],
+				},
+				displayOptions: {
+					show: {
+						operation: ['approval'],
+						reviewContentType: ['list'],
+					},
+				},
+				options: [
+					{
+						displayName: 'Block',
+						name: 'element',
+						typeOptions: {
+							multipleValueButtonText: 'Add Block',
+						},
+						values: [
+							{
+								displayName: 'Block Type',
+								name: 'type',
+								type: 'options',
+								options: [
+									{
+										name: 'Headline',
+										value: 'headline',
+										description: 'Bold section header to organize your content',
+									},
+									{
+										name: 'Image',
+										value: 'image',
+										description: 'Display an image from a URL or Base64 string',
+									},
+									{
+										name: 'Link',
+										value: 'url',
+										description: 'Clickable link with custom text',
+									},
+									{
+										name: 'Markdown',
+										value: 'markdown',
+										description: 'Rich text with formatting using Markdown syntax',
+									},
+									{
+										name: 'Text',
+										value: 'text',
+										description: 'Simple plain text content',
+									},
+								],
+								default: 'text',
+							},
+							{
+								displayName: 'Image Source Type',
+								name: 'imageSourceType',
+								type: 'options',
+								required: true,
+								default: 'url',
+								options: [
+									{
+										name: 'Base64',
+										value: 'base64',
+									},
+									{
+										name: 'URL',
+										value: 'url',
+									},
+								],
+								displayOptions: {
+									show: {
+										type: ['image'],
+									},
+								},
+							},
+							{
+								displayName: 'Base64',
+								name: 'base64',
+								type: 'string',
+								typeOptions: {
+									rows: 5,
+								},
+								required: true,
+								default: '',
+								placeholder: 'Enter base64 encoded image',
+								displayOptions: {
+									show: {
+										type: ['image'],
+										imageSourceType: ['base64'],
+									},
+								},
+							},
+							{
+								displayName: 'Image URL',
+								name: 'imageUrl',
+								type: 'string',
+								required: true,
+								default: '',
+								placeholder: 'Enter image URL',
+								displayOptions: {
+									show: {
+										type: ['image'],
+										imageSourceType: ['url'],
+									},
+								},
+							},
+							{
+								displayName: 'Link Text',
+								name: 'linkText',
+								type: 'string',
+								required: true,
+								default: '',
+								placeholder: 'Enter link text',
+								displayOptions: {
+									show: {
+										type: ['url'],
+									},
+								},
+							},
+							{
+								displayName: 'Markdown Text',
+								name: 'markdown',
+								type: 'string',
+								typeOptions: {
+									rows: 5,
+								},
+								required: true,
+								default: '',
+								placeholder: 'Enter markdown text',
+								displayOptions: {
+									show: {
+										type: ['markdown'],
+									},
+								},
+							},
+							{
+								displayName: 'Text',
+								name: 'text',
+								type: 'string',
+								required: true,
+								default: '',
+								placeholder: 'Enter text',
+								displayOptions: {
+									show: {
+										type: ['text'],
+									},
+								},
+							},
+							{
+								displayName: 'Text',
+								name: 'text',
+								type: 'string',
+								required: true,
+								default: '',
+								placeholder: 'Enter headline text',
+								displayOptions: {
+									show: {
+										type: ['headline'],
+									},
+								},
+							},
+							{
+								displayName: 'URL',
+								name: 'url',
+								type: 'string',
+								required: true,
+								default: '',
+								placeholder: 'Enter URL',
+								displayOptions: {
+									show: {
+										type: ['url'],
+									},
+								},
+							},
+						],
+					},
+				],
+			},
+						{
+				displayName: 'Approval Actions',
+				name: 'approvalActions',
+				type: 'fixedCollection',
+				placeholder: 'Add Approval Action',
+				typeOptions: {
+					multipleValues: false,
+				},
+				displayOptions: {
+					show: {
+						operation: ['approval'],
+					},
+				},
+				options: [
+					{
+						displayName: 'Approval',
+						name: 'approval',
+						values: [
+							{
+								displayName: 'Button Label',
+								name: 'label',
+								type: 'string',
+								default: 'Approve',
+								description: 'Label shown on the approval button',
+							},
+							{
+								displayName: 'Trigger URL',
+								name: 'url',
+								type: 'string',
+								required: true,
+								default: '',
+								placeholder: 'e.g. https://your-n8n-instance.com/webhook/approve',
+								description: 'Webhook URL called when the user approves',
+								validateType: 'url',
+							},
+						],
+					},
+					{
+						displayName: 'Refinement',
+						name: 'refinement',
+						values: [
+							{
+								displayName: 'Button Label',
+								name: 'label',
+								type: 'string',
+								default: 'Refine',
+								description: 'Label shown on the refinement button',
+							},
+							{
+								displayName: 'Trigger URL',
+								name: 'url',
+								type: 'string',
+								required: true,
+								default: '',
+								placeholder: 'e.g. https://your-n8n-instance.com/webhook/refine',
+								description: 'Webhook URL called when the user requests a refinement',
+								validateType: 'url',
+							},
+						],
+					},
+				],
+				description: 'Configure approval and refinement actions for approval requests.',
 			},
 			{
 				displayName: 'Rich Notification Content',
@@ -218,6 +552,11 @@ export class Orchestro implements INodeType {
 				],
 				default: 'none',
 				description: 'Add extra content that is displayed when the notification is opened. Use blocks for interactive elements like buttons or forms, or markdown for formatted text.',
+				displayOptions: {
+					show: {
+						operation: ['richNotification'],
+					},
+				},
 			},
 			// {
 			// 	displayName: 'Payload JSON',
@@ -246,6 +585,7 @@ export class Orchestro implements INodeType {
 				displayOptions: {
 					show: {
 						payloadType: ['markdown'],
+						operation: ['richNotification'],
 					},
 				},
 			},
@@ -270,6 +610,7 @@ export class Orchestro implements INodeType {
 				displayOptions: {
 					show: {
 						payloadType: ['list'],
+						operation: ['richNotification'],
 					},
 				},
 				options: [
@@ -665,8 +1006,11 @@ export class Orchestro implements INodeType {
 		let title: string;
 		let body: string;
 		let userIds: string[];
+		let operation: string;
 		let payloadType: string;
 		let elements: Array<{ type: string; text?: string; title?: string; url?: string; linkText?: string; markdown?: string; httpMethod?: string; bodyType?: string; jsonBody?: string; fields?: { field?: Array<{ key: string; valueType?: string; value: string | number | boolean }> }; name?: string; description?: string; primary?: boolean; executionButtonLabel?: string; showExecutionButtonOnly?: boolean; imageSourceType?: string; base64?: string; imageUrl?: string; workflowTriggerOptions?: Record<string, unknown> }>;
+		let approvalConfig: { approval: { label: string; url: string }; refinement: { label: string; url: string } } | null = null;
+		let approvalElements: typeof elements = [];
 
 		// Iterates over all input items and send HTTP request for each item
 		for (let itemIndex = 0; itemIndex < items.length; itemIndex++) {
@@ -678,7 +1022,11 @@ export class Orchestro implements INodeType {
 				};
 				// Extract user IDs from fixedCollection structure
 				userIds = (userIdParam?.values || []).map((item) => item.value).filter((id) => id && id.trim() !== '');
+				operation = this.getNodeParameter('operation', itemIndex, 'richNotification') as string;
 				payloadType = this.getNodeParameter('payloadType', itemIndex, 'none') as string;
+				if (operation === 'approval') {
+					payloadType = 'none';
+				}
 				item = items[itemIndex];
 
 				// Validate that at least one user ID is provided
@@ -691,7 +1039,75 @@ export class Orchestro implements INodeType {
 				// Prepare request body based on payload type
 				let requestBody: { title: string; body: string; data: Record<string, unknown> };
 				
-				if (payloadType === 'json') {
+				if (operation === 'approval') {
+					const approvalActions = this.getNodeParameter('approvalActions', itemIndex, {
+						approval: {},
+						refinement: {},
+					}) as {
+						approval?: { label?: string; url?: string };
+						refinement?: { label?: string; url?: string };
+					};
+					const approvalContentType = this.getNodeParameter('reviewContentType', itemIndex, 'markdown') as string;
+					const approvalContentMarkdown = this.getNodeParameter('reviewContentMarkdown', itemIndex, '') as string;
+					let rawApprovalElements: typeof elements = [];
+					const approvalLabel = approvalActions?.approval?.label?.trim() || 'Approve';
+					const approvalUrl = approvalActions?.approval?.url?.trim() || '';
+					const refinementLabel = approvalActions?.refinement?.label?.trim() || 'Refine';
+					const refinementUrl = approvalActions?.refinement?.url?.trim() || '';
+
+					if (!approvalUrl || !refinementUrl) {
+						throw new NodeOperationError(this.getNode(), 'Approval and refinement trigger URLs are required', {
+							itemIndex,
+						});
+					}
+
+					approvalConfig = {
+						approval: { label: approvalLabel, url: approvalUrl },
+						refinement: { label: refinementLabel, url: refinementUrl },
+					};
+
+					if (approvalContentType === 'list') {
+						const contentElementsParam = this.getNodeParameter('reviewContentElements', itemIndex, { element: [] }) as {
+							element?: typeof elements;
+						};
+						rawApprovalElements = contentElementsParam.element || [];
+					} else if (approvalContentType === 'markdown') {
+						rawApprovalElements = [
+							{
+								type: 'markdown',
+								markdown: approvalContentMarkdown,
+							},
+						];
+					} else {
+						rawApprovalElements = [];
+					}
+
+					approvalElements = rawApprovalElements.map((element) => {
+						const flattenedElement = {
+							...element,
+							id: generateUUID(),
+						} as typeof element & { id: string };
+
+						if (flattenedElement.fields && typeof flattenedElement.fields === 'object' && 'field' in flattenedElement.fields) {
+							const fieldsObj = flattenedElement.fields as { field?: Array<{ key: string; valueType?: string; value: string | number | boolean }> };
+							(flattenedElement as Record<string, unknown>).fields = fieldsObj.field || [];
+						}
+
+						return flattenedElement;
+					}) as typeof elements;
+
+					requestBody = {
+						title,
+						body,
+						data: {
+							executionId,
+							workflowId,
+							elements: approvalElements,
+							approvalActions: approvalConfig,
+						},
+					};
+					elements = [];
+				} else if (payloadType === 'json') {
 					const payloadJson = this.getNodeParameter('payloadJson', itemIndex, '') as string;
 					let jsonData: unknown;
 					try {
@@ -803,7 +1219,13 @@ export class Orchestro implements INodeType {
 					executionId,
 					workflowId,
 					userIds,
-					payload: payloadType === 'list' ? { type: 'list', elements } : payloadType === 'json' ? { type: 'json', data: requestBody.data } : null,
+					payload: operation === 'approval'
+						? { type: 'approval', approvalActions: approvalConfig, elements: approvalElements }
+						: payloadType === 'list'
+							? { type: 'list', elements }
+							: payloadType === 'json'
+								? { type: 'json', data: requestBody.data }
+								: null,
 					responses
 				};
 			} catch (error) {
@@ -828,5 +1250,3 @@ export class Orchestro implements INodeType {
 		return [items];
 	}
 }
-
-
