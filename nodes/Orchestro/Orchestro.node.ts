@@ -138,20 +138,22 @@ export class Orchestro implements INodeType {
 				displayName: 'Operation',
 				name: 'operation',
 				type: 'options',
+				noDataExpression: true,
 				options: [
 					{
 						name: 'Rich Notification',
 						value: 'richNotification',
-						description: 'Send a rich, interactive push notification.',
+						description: 'Send a rich, interactive push notification',
+						action: 'Send a rich interactive push notification',
 					},
 					{
 						name: 'Approve',
 						value: 'approval',
-						description: 'Send an approval request notification.',
+						description: 'Send an approval request notification',
+						action: 'Send an approval request notification',
 					},
 				],
 				default: 'richNotification',
-				description: 'Choose the operation to perform in Orchestro.',
 			},
 			{
 				displayName: 'Title',
@@ -243,13 +245,13 @@ export class Orchestro implements INodeType {
 						description: 'Simple formatted content using Markdown syntax',
 					},
 					{
-						name: 'No rich content',
+						name: 'No Rich Content',
 						value: 'none',
 						description: 'Send only the title and body without additional content',
 					},
 				],
 				default: 'markdown',
-				description: 'Choose how the review content is constructed before it is shown for approval.',
+				description: 'Choose how the review content is constructed before it is shown for approval',
 				displayOptions: {
 					show: {
 						operation: ['approval'],
@@ -305,10 +307,18 @@ export class Orchestro implements INodeType {
 						},
 						values: [
 							{
-								displayName: 'Block Type',
-								name: 'type',
-								type: 'options',
-								options: [
+						displayName: 'Base64',
+						name: 'base64',
+						type: 'string',
+							required:	true,
+						default: '',
+						placeholder: 'Enter base64 encoded image',
+							},
+							{
+						displayName: 'Block Type',
+						name: 'type',
+						type: 'options',
+						options: [
 									{
 										name: 'Headline',
 										value: 'headline',
@@ -335,15 +345,15 @@ export class Orchestro implements INodeType {
 										description: 'Simple plain text content',
 									},
 								],
-								default: 'text',
+						default: 'text',
 							},
 							{
-								displayName: 'Image Source Type',
-								name: 'imageSourceType',
-								type: 'options',
-								required: true,
-								default: 'url',
-								options: [
+						displayName: 'Image Source Type',
+						name: 'imageSourceType',
+						type: 'options',
+							required:	true,
+						default: 'url',
+						options: [
 									{
 										name: 'Base64',
 										value: 'base64',
@@ -352,113 +362,57 @@ export class Orchestro implements INodeType {
 										name: 'URL',
 										value: 'url',
 									},
-								],
-								displayOptions: {
-									show: {
-										type: ['image'],
-									},
-								},
+					]
 							},
 							{
-								displayName: 'Base64',
-								name: 'base64',
-								type: 'string',
-								typeOptions: {
-									rows: 5,
-								},
-								required: true,
-								default: '',
-								placeholder: 'Enter base64 encoded image',
-								displayOptions: {
-									show: {
-										type: ['image'],
-										imageSourceType: ['base64'],
-									},
-								},
+						displayName: 'Image URL',
+						name: 'imageUrl',
+						type: 'string',
+							required:	true,
+						default: '',
+						placeholder: 'Enter image URL',
 							},
 							{
-								displayName: 'Image URL',
-								name: 'imageUrl',
-								type: 'string',
-								required: true,
-								default: '',
-								placeholder: 'Enter image URL',
-								displayOptions: {
-									show: {
-										type: ['image'],
-										imageSourceType: ['url'],
-									},
-								},
+						displayName: 'Link Text',
+						name: 'linkText',
+						type: 'string',
+							required:	true,
+						default: '',
+						placeholder: 'Enter link text',
 							},
 							{
-								displayName: 'Link Text',
-								name: 'linkText',
-								type: 'string',
-								required: true,
-								default: '',
-								placeholder: 'Enter link text',
-								displayOptions: {
-									show: {
-										type: ['url'],
-									},
-								},
+						displayName: 'Markdown Text',
+						name: 'markdown',
+						type: 'string',
+							required:	true,
+						default: '',
+						placeholder: 'Enter markdown text',
 							},
 							{
-								displayName: 'Markdown Text',
-								name: 'markdown',
-								type: 'string',
-								typeOptions: {
-									rows: 5,
-								},
-								required: true,
-								default: '',
-								placeholder: 'Enter markdown text',
-								displayOptions: {
-									show: {
-										type: ['markdown'],
-									},
-								},
+						displayName: 'Text',
+						name: 'text',
+						type: 'string',
+							required:	true,
+						default: '',
+						placeholder: 'Enter text',
 							},
 							{
-								displayName: 'Text',
-								name: 'text',
-								type: 'string',
-								required: true,
-								default: '',
-								placeholder: 'Enter text',
-								displayOptions: {
-									show: {
-										type: ['text'],
-									},
-								},
+						displayName: 'Text',
+						name: 'text',
+						type: 'string',
+							required:	true,
+						default: '',
+						placeholder: 'Enter headline text',
 							},
 							{
-								displayName: 'Text',
-								name: 'text',
-								type: 'string',
-								required: true,
-								default: '',
-								placeholder: 'Enter headline text',
-								displayOptions: {
-									show: {
-										type: ['headline'],
-									},
-								},
+						displayName: 'URL',
+						name: 'url',
+						type: 'string',
+							required:	true,
+						default: '',
+						placeholder: 'Enter URL',
 							},
-							{
-								displayName: 'URL',
-								name: 'url',
-								type: 'string',
-								required: true,
-								default: '',
-								placeholder: 'Enter URL',
-								displayOptions: {
-									show: {
-										type: ['url'],
-									},
-								},
-							},
-						],
+					],
 					},
 				],
 			},
@@ -466,6 +420,7 @@ export class Orchestro implements INodeType {
 				displayName: 'Approval Actions',
 				name: 'approvalActions',
 				type: 'fixedCollection',
+				default: {},
 				placeholder: 'Add Approval Action',
 				typeOptions: {
 					multipleValues: false,
@@ -523,7 +478,7 @@ export class Orchestro implements INodeType {
 						],
 					},
 				],
-				description: 'Configure approval and refinement actions for approval requests.',
+				description: 'Configure approval and refinement actions for approval requests',
 			},
 			{
 				displayName: 'Rich Notification Content',
