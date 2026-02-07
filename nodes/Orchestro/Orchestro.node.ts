@@ -305,20 +305,13 @@ export class Orchestro implements INodeType {
 						typeOptions: {
 							multipleValueButtonText: 'Add Block',
 						},
+						/* eslint-disable -- Custom field order for workflowTrigger fields */
 						values: [
 							{
-						displayName: 'Base64',
-						name: 'base64',
-						type: 'string',
-							required:	true,
-						default: '',
-						placeholder: 'Enter base64 encoded image',
-							},
-							{
-						displayName: 'Block Type',
-						name: 'type',
-						type: 'options',
-						options: [
+								displayName: 'Block Type',
+								name: 'type',
+								type: 'options',
+								options: [
 									{
 										name: 'Headline',
 										value: 'headline',
@@ -344,16 +337,21 @@ export class Orchestro implements INodeType {
 										value: 'text',
 										description: 'Simple plain text content',
 									},
+									{
+										name: 'Workflow Trigger',
+										value: 'workflowTrigger',
+										description: 'Interactive button or form to trigger a webhook',
+									},
 								],
-						default: 'text',
+								default: 'text',
 							},
 							{
-						displayName: 'Image Source Type',
-						name: 'imageSourceType',
-						type: 'options',
-							required:	true,
-						default: 'url',
-						options: [
+								displayName: 'Image Source Type',
+								name: 'imageSourceType',
+								type: 'options',
+								required: true,
+								default: 'url',
+								options: [
 									{
 										name: 'Base64',
 										value: 'base64',
@@ -362,57 +360,317 @@ export class Orchestro implements INodeType {
 										name: 'URL',
 										value: 'url',
 									},
-					]
+								],
+								displayOptions: {
+									show: {
+										type: ['image'],
+									},
+								},
 							},
 							{
-						displayName: 'Image URL',
-						name: 'imageUrl',
-						type: 'string',
-							required:	true,
-						default: '',
-						placeholder: 'Enter image URL',
+								displayName: 'Base64',
+								name: 'base64',
+								type: 'string',
+								typeOptions: {
+									rows: 5,
+								},
+								required: true,
+								default: '',
+								placeholder: 'Enter base64 encoded image',
+								displayOptions: {
+									show: {
+										type: ['image'],
+										imageSourceType: ['base64'],
+									},
+								},
 							},
 							{
-						displayName: 'Link Text',
-						name: 'linkText',
-						type: 'string',
-							required:	true,
-						default: '',
-						placeholder: 'Enter link text',
+								displayName: 'Image URL',
+								name: 'imageUrl',
+								type: 'string',
+								required: true,
+								default: '',
+								placeholder: 'Enter image URL',
+								displayOptions: {
+									show: {
+										type: ['image'],
+										imageSourceType: ['url'],
+									},
+								},
 							},
 							{
-						displayName: 'Markdown Text',
-						name: 'markdown',
-						type: 'string',
-							required:	true,
-						default: '',
-						placeholder: 'Enter markdown text',
+								displayName: 'Adds an interactive element with a button or form fields to trigger a webhook or form. Perfect for human-in-the-loop workflows — users can approve, reject, submit data, or trigger actions directly from the notification.',
+								name: 'workflowTriggerNotice',
+								type: 'notice',
+								default: '',
+								displayOptions: {
+									show: {
+										type: ['workflowTrigger'],
+									},
+								},
+							},	
+							{
+								displayName: 'URL',
+								name: 'url',
+								type: 'string',
+								required: true,
+								default: '',
+								placeholder: 'e.g. https://your-n8n-instance.com/webhook/abc123',
+								description: 'Used to identify the trigger and display its form fields or parameters. This URL will be called when the user executes the action.',
+								hint: 'Paste the Production URL from your Webhook or Form trigger node',
+								displayOptions: {
+									show: {
+										type: ['workflowTrigger'],
+									},
+								},
 							},
 							{
-						displayName: 'Text',
-						name: 'text',
-						type: 'string',
-							required:	true,
-						default: '',
-						placeholder: 'Enter text',
+								displayName: 'Options',
+								name: 'workflowTriggerOptions',
+								type: 'collection',
+								placeholder: 'Add Option',
+								default: {},
+								displayOptions: {
+									show: {
+										type: ['workflowTrigger'],
+									},
+								},
+								options: [
+									{
+										displayName: 'Title',
+										name: 'title',
+										type: 'string',
+										default: '',
+										placeholder: 'Enter a title for the workflow trigger usage',
+									},
+									{
+										displayName: 'Description',
+										name: 'description',
+										type: 'string',
+										default: '',
+										placeholder: 'Enter a description for the workflow trigger usage',
+									},
+									{
+										displayName: 'Primary',
+										name: 'primary',
+										type: 'boolean',
+										default: true,
+									},
+									{
+										displayName: 'Execution Button Label',
+										name: 'executionButtonLabel',
+										type: 'string',
+										default: '',
+										placeholder: 'Enter execution button label',
+									},
+									{
+										displayName: 'Show Execution Button Only',
+										name: 'showExecutionButtonOnly',
+										type: 'boolean',
+										default: false,
+									},
+									{
+										displayName: 'HTTP Method',
+										name: 'httpMethod',
+										type: 'options',
+										default: 'POST',
+										options: [
+											{
+												name: 'DELETE',
+												value: 'DELETE',
+											},
+											{
+												name: 'GET',
+												value: 'GET',
+											},
+											{
+												name: 'HEAD',
+												value: 'HEAD',
+											},
+											{
+												name: 'OPTIONS',
+												value: 'OPTIONS',
+											},
+											{
+												name: 'PATCH',
+												value: 'PATCH',
+											},
+											{
+												name: 'POST',
+												value: 'POST',
+											},
+											{
+												name: 'PUT',
+												value: 'PUT',
+											},
+										],
+									},
+									{
+										displayName: 'Prefill Data',
+										name: 'bodyType',
+										type: 'options',
+										default: 'none',
+										description: 'Prefill form fields or webhook parameters with default values before the user sees them',
+										hint: 'Use this to pre-populate fields so users don\'t have to enter them manually',
+										options: [
+											{
+												name: 'No Prefill',
+												value: 'none',
+												description: 'Let users fill in all fields themselves',
+											},
+											{
+												name: 'Field Values',
+												value: 'customFields',
+												description: 'Prefill specific fields by name',
+											},
+											{
+												name: 'JSON',
+												value: 'jsonBody',
+												description: 'Prefill using a JSON object',
+											},
+										],
+									},
+									{
+										displayName: 'Prefill JSON',
+										name: 'jsonBody',
+										type: 'string',
+										typeOptions: {
+											rows: 5,
+										},
+										default: '',
+										placeholder: '{ "fieldName": "value", "anotherField": 123 }',
+										description: 'JSON object with field names and their prefill values. Field names must match the form or webhook parameters.',
+										hint: 'Add "Prefill Data" option and select "JSON" to use this',
+									},
+									{
+										displayName: 'Prefill Fields',
+										name: 'fields',
+										type: 'fixedCollection',
+										placeholder: 'Add Field',
+										typeOptions: {
+											multipleValues: true,
+											sortable: true,
+										},
+										default: {},
+										description: 'Define field names and their prefill values. Field names must match the form or webhook parameters.',
+										hint: 'Add "Prefill Data" option and select "Field Values" to use this',
+										options: [
+											{
+												displayName: 'Field',
+												name: 'field',
+												values: [
+													{
+														displayName: 'Field Name',
+														name: 'key',
+														type: 'string',
+														default: '',
+														placeholder: 'e.g. email, amount, approved',
+														description: 'The name of the form field or webhook parameter to prefill',
+													},
+													{
+														displayName: 'Value Type',
+														name: 'valueType',
+														type: 'options',
+														default: 'text',
+														options: [
+															{
+																name: 'Text',
+																value: 'text',
+															},
+															{
+																name: 'Number',
+																value: 'number',
+															},
+															{
+																name: 'Boolean',
+																value: 'boolean',
+															},
+														],
+													},
+													{
+														displayName: 'Value',
+														name: 'value',
+														type: 'string',
+														default: '',
+														placeholder: 'Enter the prefill value',
+														description: 'The value to prefill for this field',
+													},
+												],
+											},
+										],
+									},
+								],
 							},
 							{
-						displayName: 'Text',
-						name: 'text',
-						type: 'string',
-							required:	true,
-						default: '',
-						placeholder: 'Enter headline text',
+								displayName: 'Link Text',
+								name: 'linkText',
+								type: 'string',
+								required: true,
+								default: '',
+								placeholder: 'Enter link text',
+								displayOptions: {
+									show: {
+										type: ['url'],
+									},
+								},
 							},
 							{
-						displayName: 'URL',
-						name: 'url',
-						type: 'string',
-							required:	true,
-						default: '',
-						placeholder: 'Enter URL',
+								displayName: 'Markdown Text',
+								name: 'markdown',
+								type: 'string',
+								typeOptions: {
+									rows: 5,
+								},
+								required: true,
+								default: '',
+								placeholder: 'Enter markdown text',
+								displayOptions: {
+									show: {
+										type: ['markdown'],
+									},
+								},
 							},
-					],
+							{
+								displayName: 'Text',
+								name: 'text',
+								type: 'string',
+								required: true,
+								default: '',
+								placeholder: 'Enter text',
+								displayOptions: {
+									show: {
+										type: ['text'],
+									},
+								},
+							},
+							{
+								displayName: 'Text',
+								name: 'text',
+								type: 'string',
+								required: true,
+								default: '',
+								placeholder: 'Enter headline text',
+								displayOptions: {
+									show: {
+										type: ['headline'],
+									},
+								},
+							},
+							{
+								displayName: 'URL',
+								name: 'url',
+								type: 'string',
+								required: true,
+								default: '',
+								placeholder: 'Enter URL',
+								displayOptions: {
+									show: {
+										type: ['url'],
+									},
+								},
+							},
+						],
+						/* eslint-enable */
 					},
 				],
 			},
